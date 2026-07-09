@@ -375,7 +375,7 @@ export default function RouteDetails() {
                   <Zap className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-lg mb-2">ทำไมเส้นทางนี้เหมาะกับแขกของคุณ {route.aiMatch}%</h4>
+                  <h4 className="font-bold text-lg mb-2">ทำไมเส้นทางนี้เหมาะกับคุณ {route.aiMatch}%</h4>
                   <ul className="space-y-2 text-on-surface-variant">
                     {aiReasons.map((reason) => (
                       <li key={reason} className="flex items-center gap-2">
