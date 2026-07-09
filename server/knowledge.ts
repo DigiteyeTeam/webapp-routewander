@@ -1,8 +1,19 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+function resolveDataPath(filename: string) {
+  const candidates = [
+    path.join(__dirname, '../src/data', filename),
+    path.join(process.cwd(), 'src/data', filename),
+  ];
+  for (const p of candidates) {
+    if (existsSync(p)) return p;
+  }
+  throw new Error(`Data file not found: ${filename}`);
+}
 
 export type RouteKnowledge = {
   id: string;
@@ -42,13 +53,13 @@ function parseStringArray(raw: string | undefined): string[] {
 }
 
 function loadBaseRoutes() {
-  const raw = readFileSync(path.join(__dirname, '../src/data/aiKnowledge.json'), 'utf-8');
+  const raw = readFileSync(resolveDataPath('aiKnowledge.json'), 'utf-8');
   return (JSON.parse(raw) as { routes: { id: string; title: string }[] }).routes;
 }
 
 export function loadRouteWanderKnowledge() {
   const baseRoutes = loadBaseRoutes();
-  const mr = readFileSync(path.join(__dirname, '../src/data/marketplaceRoutes.ts'), 'utf-8');
+  const mr = readFileSync(resolveDataPath('marketplaceRoutes.ts'), 'utf-8');
 
   const routeBlocks = [
     ...mr.matchAll(
@@ -74,7 +85,7 @@ export function loadRouteWanderKnowledge() {
     };
   });
 
-  const pr = readFileSync(path.join(__dirname, '../src/data/phuketPois.ts'), 'utf-8');
+  const pr = readFileSync(resolveDataPath('phuketPois.ts'), 'utf-8');
 
   const communityBlocks = [
     ...pr.matchAll(
