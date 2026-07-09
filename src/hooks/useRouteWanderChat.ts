@@ -3,7 +3,7 @@ import { sendChatToGemini } from '../services/chatApi';
 import type { ChatCard, ChatMessage, ChatRole, ChatSessionContext } from '../types/chat';
 
 const FALLBACK_ERROR =
-  'ขออภัยครับ ระบบ AI ไม่พร้อมใช้งานชั่วคราว กรุณาตรวจสอบ GEMINI_API_KEY ในไฟล์ .env แล้วรัน npm run dev ใหม่ หรือลองถามใหม่ภายหลังครับ';
+  'ขออภัยครับ ระบบ AI ไม่พร้อมใช้งานชั่วคราว — ตรวจสอบ VITE_GEMINI_API_KEY ใน .env หรือลองถามใหม่ภายหลังครับ';
 
 type UseRouteWanderChatOptions = {
   role?: ChatRole;

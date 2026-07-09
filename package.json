@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n api,web -c green,cyan \"npm run dev:api\" \"npm run dev:web\"",
+    "dev": "vite --port=4000 --host=0.0.0.0",
+    "dev:full": "concurrently -k -n api,web -c green,cyan \"npm run dev:api\" \"npm run dev:web\"",
     "dev:web": "vite --port=4000 --host=0.0.0.0",
     "dev:api": "tsx watch server/index.ts",
     "build": "vite build",

@@ -1,4 +1,8 @@
 import { resolveChatCards } from '../lib/chatCards';
+import { extractChatCardRefs, stripChatMarkers } from '../lib/chatMarkers';
+import { buildRouteWanderSystemPrompt } from '../lib/chatPrompt';
+import { callGeminiChat, getChatMode, isGeminiEnabled } from '../lib/geminiClient';
+import { generateMockChatReply } from '../lib/mockChat';
 import type { ChatMessage, ChatRole, ChatSessionContext } from '../types/chat';
 
 export type ChatApiMessage = {
@@ -6,65 +10,50 @@ export type ChatApiMessage = {
   text: string;
 };
 
-export type ChatApiResponse = {
-  text: string;
-  cards?: Array<{ type: string; id?: string; no?: number }>;
-  model?: string;
-  mode?: 'mock' | 'gemini';
-  fallback?: boolean;
-  notice?: string;
-};
-
 export type ChatRequestOptions = {
   role?: ChatRole;
   context?: ChatSessionContext;
 };
 
+function toChatMessage(
+  rawText: string,
+  extra?: { notice?: string },
+): ChatMessage {
+  const cards = resolveChatCards(extractChatCardRefs(rawText));
+  return {
+    role: 'ai',
+    text: stripChatMarkers(rawText),
+    cards: cards.length ? cards : undefined,
+    notice: extra?.notice,
+  };
+}
+
 export async function sendChatToGemini(
   messages: ChatApiMessage[],
   options: ChatRequestOptions = {},
 ): Promise<ChatMessage> {
-  let res: Response;
+  const role = options.role ?? 'marketplace';
+  const context = options.context;
+  const mode = getChatMode();
+
+  if (!isGeminiEnabled()) {
+    const raw = await generateMockChatReply(messages, role, context);
+    return toChatMessage(raw);
+  }
+
+  const systemPrompt = buildRouteWanderSystemPrompt(role, context);
+
   try {
-    res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages,
-        role: options.role ?? 'marketplace',
-        context: options.context,
-      }),
-    });
-  } catch {
-    throw new Error(
-      'เชื่อมต่อ API ไม่ได้ — รันคำสั่ง npm run dev (ต้องมีทั้งเว็บ port 4000 และ API port 3001)',
-    );
+    const { text } = await callGeminiChat(messages, systemPrompt);
+    return toChatMessage(text);
+  } catch (err) {
+    if (mode === 'auto') {
+      const detail = err instanceof Error ? err.message : 'Gemini error';
+      const raw = await generateMockChatReply(messages, role, context);
+      return toChatMessage(raw, {
+        notice: `${detail}\n\n(ตอบจากโหมดสาธิตชั่วคราว)`,
+      });
+    }
+    throw err;
   }
-
-  const data = (await res.json().catch(() => ({}))) as ChatApiResponse & { error?: string };
-
-  if (!res.ok) {
-    const errText = data.error || `Chat failed (${res.status})`;
-    throw new Error(errText.length > 300 ? `${errText.slice(0, 300)}...` : errText);
-  }
-
-  if (!data.text?.trim()) {
-    throw new Error('Empty response from AI');
-  }
-
-  const cards = resolveChatCards(
-    (data.cards ?? []).map((c) => {
-      if (c.type === 'route' && c.id) return { type: 'route' as const, id: c.id };
-      if (c.type === 'community' && c.no) return { type: 'community' as const, no: c.no };
-      if (c.type === 'landmark' && c.id) return { type: 'landmark' as const, id: c.id };
-      return null;
-    }).filter(Boolean) as Parameters<typeof resolveChatCards>[0],
-  );
-
-  return {
-    role: 'ai',
-    text: data.text.trim(),
-    cards: cards.length ? cards : undefined,
-    notice: data.fallback && data.notice ? data.notice : undefined,
-  };
 }

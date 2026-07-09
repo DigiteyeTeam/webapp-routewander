@@ -1,14 +1,5 @@
 {
   "rewrites": [
     { "source": "/((?!api/).*)", "destination": "/index.html" }
-  ],
-  "functions": {
-    "api/chat.ts": {
-      "includeFiles": "src/data/**",
-      "maxDuration": 30
-    },
-    "api/health.ts": {
-      "maxDuration": 10
-    }
-  }
+  ]
 }
