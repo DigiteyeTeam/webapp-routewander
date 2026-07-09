@@ -5,9 +5,26 @@ import { defineConfig, loadEnv } from 'vite';
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '');
-  const geminiKey = env.VITE_GEMINI_API_KEY || env.GEMINI_API_KEY || '';
-  const chatMode = env.VITE_CHAT_MODE || env.CHAT_MODE || 'auto';
-  const geminiModel = env.VITE_GEMINI_MODEL || env.GEMINI_MODEL || '';
+  // Vercel ใส่ env ใน process.env ตอน build — loadEnv อ่านแค่ไฟล์ .env
+  const geminiKey = (
+    process.env.VITE_GEMINI_API_KEY ||
+    process.env.GEMINI_API_KEY ||
+    env.VITE_GEMINI_API_KEY ||
+    env.GEMINI_API_KEY ||
+    ''
+  ).trim();
+  const chatMode =
+    process.env.VITE_CHAT_MODE ||
+    process.env.CHAT_MODE ||
+    env.VITE_CHAT_MODE ||
+    env.CHAT_MODE ||
+    'auto';
+  const geminiModel =
+    process.env.VITE_GEMINI_MODEL ||
+    process.env.GEMINI_MODEL ||
+    env.VITE_GEMINI_MODEL ||
+    env.GEMINI_MODEL ||
+    '';
 
   return {
     define: {

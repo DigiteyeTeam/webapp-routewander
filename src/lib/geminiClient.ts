@@ -61,9 +61,14 @@ export async function callGeminiChat(
 
       if (!res.ok) {
         const msg = data.error?.message || `Gemini HTTP ${res.status}`;
-        if (res.status === 401 || msg.includes('authentication')) {
+        if (
+          res.status === 401 ||
+          res.status === 400 ||
+          msg.toLowerCase().includes('api key not valid') ||
+          msg.includes('authentication')
+        ) {
           throw new Error(
-            'API key ไม่ถูกต้อง — สร้าง key ใหม่จาก https://aistudio.google.com/apikey (รองรับทั้ง AIzaSy... และ AQ....)',
+            'API key ไม่ถูกต้อง — ตรวจค่า GEMINI_API_KEY บน Vercel แล้ว Redeploy หรือสร้าง key ใหม่จาก https://aistudio.google.com/apikey',
           );
         }
         if (res.status === 429 || msg.includes('quota')) {
