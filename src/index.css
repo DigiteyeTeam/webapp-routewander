@@ -1,0 +1,193 @@
+@import "leaflet/dist/leaflet.css";
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #16a34a; /* green-600 */
+  --color-primary-container: #f0fdf4; /* green-50 */
+  --color-on-primary-container: #166534; /* green-800 */
+  --color-secondary: #4b5563;
+  --color-secondary-container: #f3f4f6;
+  --color-surface: #f9fafb;
+  --color-on-surface: #111827;
+  --color-surface-variant: #e5e7eb;
+  --color-on-surface-variant: #374151;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-container-low: #f3f4f5;
+
+
+  --font-headline-lg: "Plus Jakarta Sans", sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", sans-serif;
+  --font-body-lg: "Atkinson Hyperlegible Next", sans-serif;
+  --font-body-md: "Atkinson Hyperlegible Next", sans-serif;
+  --font-button: "Atkinson Hyperlegible Next", sans-serif;
+  --font-label-sm: "Atkinson Hyperlegible Next", sans-serif;
+  --font-display-lg: "Plus Jakarta Sans", sans-serif;
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-on-surface font-body-md;
+  }
+}
+
+/* Leaflet markers & popups for route creator */
+.poi-leaflet-marker,
+.custom-leaflet-marker,
+.marketplace-route-marker,
+.marketplace-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.marketplace-pin-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.28));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.marketplace-pin-circle {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--pin-color);
+  background: linear-gradient(160deg, #fff 0%, color-mix(in srgb, var(--pin-color) 12%, #fff) 100%);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 0 0 2px #fff,
+    0 0 0 5px var(--pin-color),
+    0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.marketplace-pin-circle img {
+  width: 88%;
+  height: 88%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.marketplace-pin-tail {
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 9px solid var(--pin-color);
+  margin-top: -2px;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.2));
+}
+
+.marketplace-pin-wrap--selected {
+  transform: scale(1.16);
+  filter:
+    drop-shadow(0 0 14px var(--pin-color))
+    drop-shadow(0 5px 14px rgba(0, 0, 0, 0.35));
+}
+
+.marketplace-pin-wrap--selected .marketplace-pin-circle {
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 7px var(--pin-color),
+    0 0 18px color-mix(in srgb, var(--pin-color) 65%, transparent);
+}
+
+.community-map-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+.community-pin-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+}
+
+.community-pin-circle {
+  border-radius: 50%;
+  border-style: solid;
+  border-color: var(--pin-color);
+  background: #fff;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.community-pin-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.community-pin-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: var(--pin-color);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
+}
+
+.leaflet-popup-content {
+  margin: 12px 14px;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-detail-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 163, 74, 0.35) transparent;
+}
+
+.map-detail-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+
+.map-detail-scroll::-webkit-scrollbar-thumb {
+  background: rgba(22, 163, 74, 0.35);
+  border-radius: 9999px;
+}
