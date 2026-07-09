@@ -12,15 +12,12 @@ function getModels(): string[] {
 }
 
 function buildGeminiRequest(apiKey: string, model: string) {
-  const url = apiKey.startsWith('AQ.')
-    ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
-    : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
-
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (apiKey.startsWith('AQ.')) {
-    headers.Authorization = `Bearer ${apiKey}`;
-  }
-
+  // AIza... = standard key (query param ได้) | AQ.... = auth key (ต้องใช้ x-goog-api-key)
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    'x-goog-api-key': apiKey,
+  };
   return { url, headers };
 }
 
@@ -63,7 +60,18 @@ export async function callGeminiChat(
       };
 
       if (!res.ok) {
-        throw new Error(data.error?.message || `Gemini HTTP ${res.status}`);
+        const msg = data.error?.message || `Gemini HTTP ${res.status}`;
+        if (res.status === 401 || msg.includes('authentication')) {
+          throw new Error(
+            'API key ไม่ถูกต้อง — สร้าง key ใหม่จาก https://aistudio.google.com/apikey (รองรับทั้ง AIzaSy... และ AQ....)',
+          );
+        }
+        if (res.status === 429 || msg.includes('quota')) {
+          throw new Error(
+            'โควต้า Gemini API หมด — รอสักครู่แล้วลองใหม่ หรือเปิด Billing ที่ Google Cloud Console',
+          );
+        }
+        throw new Error(msg);
       }
 
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
