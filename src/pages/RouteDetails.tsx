@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   CheckCircle,
@@ -20,6 +20,12 @@ import {
 } from 'lucide-react';
 import { getRouteById, formatDistance, formatDurationLong } from '../data/routeStore';
 import { formatPrice } from '../data/marketplaceRoutes';
+import {
+  getRouteLicensePricing,
+  formatPriceWithPeriod,
+  LICENSE_PERIOD_LABEL,
+  type LicensePeriod,
+} from '../data/routePricing';
 import { WAYPOINT_TYPE_LABELS, type WaypointType } from '../types/route';
 import RouteDetailMap from '../components/route/RouteDetailMap';
 import RouteTrail from '../components/marketplace/RouteTrail';
@@ -62,12 +68,24 @@ function NotFound() {
 export default function RouteDetails() {
   const { id } = useParams<{ id: string }>();
   const route = useMemo(() => (id ? getRouteById(id) : null), [id]);
+  const [licensePeriod, setLicensePeriod] = useState<LicensePeriod>('weekly');
 
   if (!route) return <NotFound />;
 
+  const pricing = getRouteLicensePricing(route.price);
+  const selectedPrice = pricing[licensePeriod];
   const distanceLabel = formatDistance(route.routeStats?.distance);
   const durationLabel = route.routeStats ? formatDurationLong(route.routeStats.duration) : route.duration;
-  const lifetimePrice = route.price * 3;
+
+  const licenseOptions: {
+    period: LicensePeriod;
+    title: string;
+    desc: string;
+  }[] = [
+    { period: 'weekly', title: 'รายสัปดาห์', desc: 'ทดลองใช้งานหรือแคมเปญสั้น' },
+    { period: 'monthly', title: 'รายเดือน', desc: 'ยืดหยุ่น เหมาะกับโรงแรมขนาดกลาง' },
+    { period: 'yearly', title: 'รายปี', desc: 'คุ้มที่สุดสำหรับใช้งานตลอดฤดูกาล' },
+  ];
   const heroImage =
     route.image ||
     'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1200&q=80';
@@ -246,37 +264,45 @@ export default function RouteDetails() {
           <div className="bg-surface-container-lowest border border-outline-variant rounded-3xl p-6 shadow-soft sticky top-24">
             <h3 className="text-xl font-bold mb-6">ตัวเลือกไลเซนส์</h3>
 
-            <label className="block border-2 border-primary rounded-2xl p-5 mb-4 cursor-pointer hover:bg-primary-container/30 transition-colors relative">
-              <input type="radio" name="license" className="absolute opacity-0" defaultChecked />
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <span className="font-bold text-lg block">สมาชิกรายปี</span>
-                  <span className="text-sm text-secondary">เหมาะกับบริการตามฤดูกาล</span>
-                </div>
-                <div className="w-5 h-5 rounded-full border-4 border-primary bg-white" />
-              </div>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold">{formatPrice(route.price)}</span>
-                <span className="text-secondary font-medium">/ ปี</span>
-              </div>
-            </label>
+            {licenseOptions.map((option) => {
+              const isSelected = licensePeriod === option.period;
+              const amount = pricing[option.period];
+              return (
+                <label
+                  key={option.period}
+                  className={`block border-2 rounded-2xl p-5 mb-4 cursor-pointer transition-colors relative ${
+                    isSelected
+                      ? 'border-primary bg-primary-container/20'
+                      : 'border-surface-variant hover:border-primary/50'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="license"
+                    className="absolute opacity-0"
+                    checked={isSelected}
+                    onChange={() => setLicensePeriod(option.period)}
+                  />
+                  <div className="flex justify-between items-start mb-2">
+                    <div>
+                      <span className="font-bold text-lg block">{option.title}</span>
+                      <span className="text-sm text-secondary">{option.desc}</span>
+                    </div>
+                    <div
+                      className={`w-5 h-5 rounded-full shrink-0 ${
+                        isSelected ? 'border-4 border-primary bg-white' : 'border-2 border-surface-variant bg-white'
+                      }`}
+                    />
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-1">
+                    <span className="text-3xl font-extrabold">{formatPrice(amount)}</span>
+                    <span className="text-secondary font-medium">/ {LICENSE_PERIOD_LABEL[option.period]}</span>
+                  </div>
+                </label>
+              );
+            })}
 
-            <label className="block border-2 border-surface-variant rounded-2xl p-5 mb-6 cursor-pointer hover:border-primary transition-colors relative">
-              <input type="radio" name="license" className="absolute opacity-0" />
-              <div className="flex justify-between items-start mb-2">
-                <div>
-                  <span className="font-bold text-lg block">ไลเซนส์ตลอดชีพ</span>
-                  <span className="text-sm text-secondary">จ่ายครั้งเดียว ใช้ได้ตลอด</span>
-                </div>
-                <div className="w-5 h-5 rounded-full border-2 border-surface-variant bg-white" />
-              </div>
-              <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-extrabold">{formatPrice(lifetimePrice)}</span>
-                <span className="text-secondary font-medium">ครั้งเดียว</span>
-              </div>
-            </label>
-
-            <ul className="space-y-3 mb-8">
+            <ul className="space-y-3 mb-8 mt-2">
               <li className="flex items-start gap-3 text-sm text-on-surface-variant">
                 <ShieldCheck className="w-5 h-5 text-primary shrink-0" /> สิทธิ์ใช้งานและแจกจ่ายให้ลูกค้าของคุณ
               </li>
@@ -289,7 +315,7 @@ export default function RouteDetails() {
             </ul>
 
             <button className="w-full h-14 bg-primary text-on-primary rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-lg mb-3">
-              ซื้อไลเซนส์
+              ซื้อไลเซนส์ {formatPriceWithPeriod(selectedPrice, licensePeriod)}
             </button>
             <p className="text-center text-xs text-secondary">รายได้ส่งตรงถึง {route.creator.name}</p>
           </div>

@@ -3,7 +3,7 @@ import {
   type MarketplaceRoute,
 } from './marketplaceRoutes';
 
-export type LibraryLicenseKind = 'lifetime' | 'annual' | 'custom';
+export type LibraryLicenseKind = 'lifetime' | 'monthly' | 'annual' | 'custom';
 
 export interface LibraryEntry {
   id: string;
@@ -25,8 +25,8 @@ export const LIBRARY_ENTRIES: LibraryEntry[] = [
   {
     id: '2',
     sourceRouteId: '2',
-    license: 'annual',
-    annualRenewal: 'ต่ออายุถึง มี.ค. 2027',
+    license: 'monthly',
+    annualRenewal: 'ต่ออายุทุกเดือน',
   },
   {
     id: '3',

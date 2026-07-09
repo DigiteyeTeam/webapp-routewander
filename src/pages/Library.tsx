@@ -17,6 +17,11 @@ function licenseBadge(license: LibraryLicenseKind, renewal?: string) {
   switch (license) {
     case 'lifetime':
       return { className: 'bg-primary text-on-primary', label: 'ไลเซนส์ตลอดชีพ' };
+    case 'monthly':
+      return {
+        className: 'bg-secondary-container text-on-secondary-container',
+        label: renewal ? `สมาชิกรายเดือน · ${renewal}` : 'สมาชิกรายเดือน (ใช้งานอยู่)',
+      };
     case 'annual':
       return {
         className: 'bg-secondary-container text-on-secondary-container',

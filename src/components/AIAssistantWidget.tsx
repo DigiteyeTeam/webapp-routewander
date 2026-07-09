@@ -1,7 +1,8 @@
-import { X, Maximize2, Minimize2, Send, User } from 'lucide-react';
+import { X, Maximize2, Minimize2, Send, User, Loader2 } from 'lucide-react';
 import { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import aiMascot from '../images/rwai1.png';
+import { useRouteWanderChat } from '../hooks/useRouteWanderChat';
 
 function MascotAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'fab' }) {
   const sizeClass =
@@ -23,33 +24,21 @@ function MascotAvatar({ size = 'md' }: { size?: 'sm' | 'md' | 'lg' | 'fab' }) {
   );
 }
 
+const INITIAL_MESSAGE =
+  'สวัสดีครับ! ผมเป็นผู้ช่วย AI ด้านเส้นทางท่องเที่ยว ช่วยแนะนำเส้นทางชุมชนภูเก็ต วิเคราะห์ผลกระทบต่อชุมชน หรือปรับแต่งเส้นทางที่คุณมีไลเซนส์อยู่ได้ครับ';
+
 export default function AIAssistantWidget() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [message, setMessage] = useState('');
-
-  const [chat, setChat] = useState([
-    {
-      role: 'ai',
-      text: 'สวัสดีครับ! ผมเป็นผู้ช่วย AI ด้านเส้นทางท่องเที่ยว ช่วยอะไรได้บ้างครับ? แนะนำเส้นทางที่เหมาะสม วิเคราะห์ผลกระทบต่อชุมชน หรือปรับแต่งเส้นทางที่คุณมีไลเซนส์อยู่',
-    },
-  ]);
+  const { chat, loading, sendMessage } = useRouteWanderChat(INITIAL_MESSAGE);
 
   const handleSend = () => {
-    if (!message.trim()) return;
-    setChat([...chat, { role: 'user', text: message }]);
+    if (!message.trim() || loading) return;
+    const userText = message.trim();
     setMessage('');
-
-    setTimeout(() => {
-      setChat((prev) => [
-        ...prev,
-        {
-          role: 'ai',
-          text: 'นี่เป็นคำตอบจำลองจาก AI ในระบบจริงจะวิเคราะห์คำขอของคุณผ่านระบบข้อมูลเชิงลึกชุมชน แล้วแนะนำเส้นทาง ข้อมูลเชิงลึก หรือการปรับแต่งที่เหมาะกับคุณ',
-        },
-      ]);
-    }, 1000);
+    void sendMessage(userText);
   };
 
   if (location.pathname === '/') return null;
@@ -77,7 +66,7 @@ export default function AIAssistantWidget() {
           </div>
           <div>
             <span className="font-bold block leading-tight">RouteWander AI</span>
-            <span className="text-xs text-white/80 font-medium">ข้อมูลเชิงลึกชุมชน</span>
+            <span className="text-xs text-white/80 font-medium">Gemini · ข้อมูลชุมชนภูเก็ต</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -112,12 +101,18 @@ export default function AIAssistantWidget() {
               </div>
             )}
             <div
-              className={`px-5 py-4 max-w-[85%] ${msg.role === 'user' ? 'bg-primary text-on-primary rounded-2xl rounded-tr-sm shadow-md' : 'bg-surface-container-low text-on-surface rounded-2xl rounded-tl-sm border border-surface-variant'}`}
+              className={`px-5 py-4 max-w-[85%] whitespace-pre-wrap ${msg.role === 'user' ? 'bg-primary text-on-primary rounded-2xl rounded-tr-sm shadow-md' : 'bg-surface-container-low text-on-surface rounded-2xl rounded-tl-sm border border-surface-variant'}`}
             >
               <p className="text-[15px] leading-relaxed">{msg.text}</p>
             </div>
           </div>
         ))}
+        {loading && (
+          <div className="flex gap-2 items-center text-sm text-secondary">
+            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+            กำลังคิด...
+          </div>
+        )}
       </div>
 
       <div className="p-4 md:p-6 bg-surface border-t border-surface-variant shrink-0">
@@ -128,11 +123,13 @@ export default function AIAssistantWidget() {
             onChange={(e) => setMessage(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="ถาม AI เรื่องแนะนำเส้นทาง..."
-            className="w-full h-14 pl-6 pr-14 rounded-full border-2 border-surface-variant bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[15px] shadow-sm transition-all"
+            disabled={loading}
+            className="w-full h-14 pl-6 pr-14 rounded-full border-2 border-surface-variant bg-surface-container-lowest focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary text-[15px] shadow-sm transition-all disabled:opacity-60"
           />
           <button
             onClick={handleSend}
-            className={`absolute right-2 w-10 h-10 flex items-center justify-center rounded-full transition-all ${message.trim() ? 'bg-primary text-on-primary shadow-md hover:scale-105' : 'text-secondary hover:bg-surface-variant'}`}
+            disabled={loading}
+            className={`absolute right-2 w-10 h-10 flex items-center justify-center rounded-full transition-all ${message.trim() && !loading ? 'bg-primary text-on-primary shadow-md hover:scale-105' : 'text-secondary hover:bg-surface-variant'}`}
           >
             <Send className="w-5 h-5 ml-0.5" />
           </button>

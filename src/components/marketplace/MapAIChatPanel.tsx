@@ -1,15 +1,14 @@
 import { useState } from 'react';
-import { ChevronRight, Send, User } from 'lucide-react';
+import { ChevronRight, Send, User, Loader2 } from 'lucide-react';
 import aiMascot from '../../images/rwai1.png';
+import { useRouteWanderChat } from '../../hooks/useRouteWanderChat';
 
 function MascotAvatar({ className = 'w-9 h-9' }: { className?: string }) {
   return <img src={aiMascot} alt="" className={`object-contain shrink-0 ${className}`} draggable={false} />;
 }
 
-const INITIAL_MESSAGE = {
-  role: 'ai' as const,
-  text: 'สวัสดีครับ! ผม RouteWander AI ช่วยแนะนำเส้นทางชุมชนภูเก็ต จับคู่ประสบการณ์ให้แขก หรือตอบคำถามเรื่องชุมชนท้องถิ่นได้เลยครับ',
-};
+const INITIAL_MESSAGE =
+  'สวัสดีครับ! ผม RouteWander AI ช่วยแนะนำเส้นทางชุมชนภูเก็ต จับคู่ประสบการณ์ให้แขก หรือตอบคำถามเรื่องชุมชนท้องถิ่นได้เลยครับ';
 
 export function MapAICollapsedFab({ onOpen }: { onOpen: () => void }) {
   return (
@@ -32,22 +31,13 @@ interface MapAIChatPanelProps {
 
 export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
   const [message, setMessage] = useState('');
-  const [chat, setChat] = useState([INITIAL_MESSAGE]);
+  const { chat, loading, sendMessage } = useRouteWanderChat(INITIAL_MESSAGE);
 
   const handleSend = () => {
-    if (!message.trim()) return;
+    if (!message.trim() || loading) return;
     const userText = message.trim();
     setMessage('');
-    setChat((prev) => [...prev, { role: 'user' as const, text: userText }]);
-    setTimeout(() => {
-      setChat((prev) => [
-        ...prev,
-        {
-          role: 'ai' as const,
-          text: 'จากคำถามของคุณ ผมแนะนำลองดูเส้นทางบนแผนที่ — คลิกหมุดเพื่อดูรายละเอียดและคะแนน AI จับคู่ครับ',
-        },
-      ]);
-    }, 800);
+    void sendMessage(userText);
   };
 
   return (
@@ -60,7 +50,7 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-sm leading-tight truncate">RouteWander AI</p>
-              <p className="text-[10px] text-white/80">แนะนำเส้นทางชุมชน</p>
+              <p className="text-[10px] text-white/80">แนะนำเส้นทางชุมชน · Gemini</p>
             </div>
           </div>
           <button
@@ -86,7 +76,7 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
                 </div>
               )}
               <div
-                className={`px-3 py-2.5 max-w-[88%] text-xs leading-relaxed rounded-2xl ${
+                className={`px-3 py-2.5 max-w-[88%] text-xs leading-relaxed rounded-2xl whitespace-pre-wrap ${
                   msg.role === 'user'
                     ? 'bg-primary text-white rounded-tr-sm'
                     : 'bg-surface border border-surface-variant text-on-surface rounded-tl-sm'
@@ -96,6 +86,12 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
               </div>
             </div>
           ))}
+          {loading && (
+            <div className="flex gap-2 items-center text-xs text-secondary px-1">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              กำลังคิด...
+            </div>
+          )}
         </div>
 
         <div className="shrink-0 p-3 border-t border-surface-variant bg-surface">
@@ -106,14 +102,15 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
               placeholder="ถามเรื่องเส้นทาง..."
-              className="w-full h-10 pl-3 pr-10 rounded-xl border border-surface-variant bg-surface-container-low text-sm focus:outline-none focus:border-primary"
+              disabled={loading}
+              className="w-full h-10 pl-3 pr-10 rounded-xl border border-surface-variant bg-surface-container-low text-sm focus:outline-none focus:border-primary disabled:opacity-60"
             />
             <button
               type="button"
               onClick={handleSend}
-              disabled={!message.trim()}
+              disabled={!message.trim() || loading}
               className={`absolute right-1 w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                message.trim() ? 'bg-primary text-white' : 'text-secondary'
+                message.trim() && !loading ? 'bg-primary text-white' : 'text-secondary'
               }`}
             >
               <Send className="w-4 h-4" />

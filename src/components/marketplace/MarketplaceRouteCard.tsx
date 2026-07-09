@@ -5,7 +5,34 @@ import {
   CATEGORY_META,
   formatPrice,
 } from '../../data/marketplaceRoutes';
+import { getRouteLicensePricing } from '../../data/routePricing';
 import RouteTrail from './RouteTrail';
+
+function RoutePriceFrom({ yearlyPrice, large }: { yearlyPrice: number; large?: boolean }) {
+  const pricing = getRouteLicensePricing(yearlyPrice);
+  if (large) {
+    return (
+      <div className="text-right">
+        <p className="text-xl font-extrabold text-on-surface">
+          {formatPrice(pricing.weekly)}
+          <span className="text-sm font-normal text-secondary">/สัปดาห์</span>
+        </p>
+        <p className="text-[11px] text-secondary mt-0.5">
+          หรือ {formatPrice(pricing.monthly)}/เดือน
+        </p>
+      </div>
+    );
+  }
+  return (
+    <div className="text-right">
+      <p className="font-extrabold text-primary text-sm">
+        {formatPrice(pricing.weekly)}
+        <span className="text-[10px] font-normal text-secondary">/สัปดาห์</span>
+      </p>
+      <p className="text-[10px] text-secondary">{formatPrice(pricing.monthly)}/เดือน</p>
+    </div>
+  );
+}
 
 export function MarketplaceRouteCard({
   route,
@@ -50,7 +77,7 @@ export function MarketplaceRouteCard({
           <div className="mt-auto flex items-end justify-between gap-4">
             <CreatorChip route={route} />
             <div className="text-right">
-              <p className="text-xl font-extrabold text-on-surface">{formatPrice(route.price)}<span className="text-sm font-normal text-secondary">/ปี</span></p>
+              <RoutePriceFrom yearlyPrice={route.price} large />
               <div className="flex items-center gap-1 justify-end mt-1">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span className="text-sm font-bold">{route.rating}</span>
@@ -73,7 +100,9 @@ export function MarketplaceRouteCard({
           <p className="font-bold text-sm text-on-surface truncate group-hover:text-primary">{route.title}</p>
           <p className="text-xs text-secondary truncate">{route.creator.name}</p>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-xs font-bold text-primary">{formatPrice(route.price)}</span>
+            <span className="text-xs font-bold text-primary">
+              {formatPrice(getRouteLicensePricing(route.price).weekly)}/สัปดาห์
+            </span>
             <span className="text-[10px] text-violet-600 font-bold">AI {route.aiMatch}%</span>
           </div>
         </div>
@@ -116,7 +145,7 @@ export function MarketplaceRouteCard({
             <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{route.stops} จุด</span>
             <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{route.duration}</span>
           </div>
-          <p className="font-extrabold text-primary text-sm">{formatPrice(route.price)}<span className="text-[10px] font-normal text-secondary">/ปี</span></p>
+          <RoutePriceFrom yearlyPrice={route.price} />
         </div>
       </div>
     </Link>
