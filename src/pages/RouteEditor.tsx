@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { ArrowLeft, Save, MapPin, Plus, Trash2, GripVertical, ImageIcon, Clock, Play } from 'lucide-react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { HOTEL_LIBRARY_PATH } from '../config/navigation';
 import { getRouteById } from '../data/routeStore';
+import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
 import {
   getLibraryEntry,
   getLibraryDisplayDescription,
@@ -76,20 +78,20 @@ export default function RouteEditor() {
 
   if (!entry || !source) {
     return (
-      <div className="max-w-7xl mx-auto text-center py-24">
+    <MotionPage className="max-w-7xl mx-auto text-center py-24">
         <h1 className="font-headline-lg text-2xl font-bold text-on-surface mb-4">ไม่พบเส้นทางในคลัง</h1>
-        <Link to="/library" className="text-primary font-bold hover:underline">
+        <Link to={HOTEL_LIBRARY_PATH} className="text-primary font-bold hover:underline">
           กลับไปคลังของฉัน
         </Link>
-      </div>
+      </MotionPage>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <MotionPage className="max-w-7xl mx-auto space-y-8">
+      <MotionHeader className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <Link to="/library" className="p-2 hover:bg-surface-variant rounded-full transition-colors">
+          <Link to={HOTEL_LIBRARY_PATH} className="p-2 hover:bg-surface-variant rounded-full transition-colors">
             <ArrowLeft className="w-6 h-6 text-on-surface" />
           </Link>
           <div>
@@ -110,17 +112,17 @@ export default function RouteEditor() {
           )}
           <button
             type="button"
-            onClick={() => navigate('/library')}
+            onClick={() => navigate(HOTEL_LIBRARY_PATH)}
             className="px-6 py-2 rounded-xl font-bold bg-primary text-on-primary hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-soft"
           >
             <Save className="w-5 h-5" /> บันทึกการเปลี่ยนแปลง
           </button>
         </div>
-      </header>
+      </MotionHeader>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          <section className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant shadow-soft">
+          <MotionSection className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant shadow-soft">
             <h2 className="font-headline-md text-xl font-bold text-on-surface mb-6">ข้อมูลทั่วไป</h2>
             <div className="space-y-5">
               <div>
@@ -142,9 +144,9 @@ export default function RouteEditor() {
                 />
               </div>
             </div>
-          </section>
+          </MotionSection>
 
-          <section className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant shadow-soft">
+          <MotionSection className="bg-surface-container-lowest p-6 md:p-8 rounded-2xl border border-outline-variant shadow-soft">
             <div className="flex items-center justify-between mb-6">
               <h2 className="font-headline-md text-xl font-bold text-on-surface">จุดแวะในเส้นทาง</h2>
               <button
@@ -227,7 +229,7 @@ export default function RouteEditor() {
             >
               <Plus className="w-5 h-5" /> เพิ่มจุดแวะใหม่
             </button>
-          </section>
+          </MotionSection>
         </div>
 
         <div className="lg:col-span-1 space-y-6">
@@ -249,6 +251,6 @@ export default function RouteEditor() {
           </div>
         </div>
       </div>
-    </div>
+    </MotionPage>
   );
 }

@@ -22,7 +22,7 @@ export interface CreatorRoutePerformance {
   title: string;
   image: string;
   aiMatch: number;
-  licensesSold: number;
+  purchases: number;
   revenue: number;
   revenueFormatted: string;
   tags: string[];
@@ -31,7 +31,7 @@ export interface CreatorRoutePerformance {
 
 export interface CreatorDashboardStats {
   routeCount: number;
-  licensesSold: number;
+  purchases: number;
   monthlyRevenue: number;
   monthlyRevenueFormatted: string;
   communitiesLinked: number;
@@ -65,10 +65,20 @@ export const MOCK_CREATOR_PROFILE: CreatorProfile = {
   memberSince: 'ม.ค. 2025',
 };
 
-const ROUTE_SALES: Record<string, { licensesSold: number; demand: CreatorRoutePerformance['demand'] }> = {
-  '1': { licensesSold: 524, demand: 'สูงมาก' },
-  '20': { licensesSold: 328, demand: 'สูง' },
+const ROUTE_SALES: Record<string, { purchases: number; demand: CreatorRoutePerformance['demand'] }> = {
+  '1': { purchases: 524, demand: 'สูงมาก' },
+  '20': { purchases: 328, demand: 'สูง' },
 };
+
+const AVG_BOOKING_VALUE = 1500;
+const PLATFORM_FEE = 200;
+const HOTEL_REFERRAL_RATE = 0.15;
+const HOTEL_ATTRIBUTED_SHARE = 0.55;
+
+function getCreatorRevenuePerPurchase() {
+  const avgHotelCommission = AVG_BOOKING_VALUE * HOTEL_REFERRAL_RATE * HOTEL_ATTRIBUTED_SHARE;
+  return Math.round(AVG_BOOKING_VALUE - PLATFORM_FEE - avgHotelCommission);
+}
 
 export function getCreatorMarketplaceRoutes(): MarketplaceRoute[] {
   return MARKETPLACE_ROUTES.filter((r) => r.creator.name === MOCK_CREATOR_PROFILE.name);
@@ -77,15 +87,16 @@ export function getCreatorMarketplaceRoutes(): MarketplaceRoute[] {
 export function getCreatorRoutePerformance(): CreatorRoutePerformance[] {
   return getCreatorMarketplaceRoutes()
     .map((route) => {
-      const sales = ROUTE_SALES[route.id] ?? { licensesSold: 120, demand: 'ปานกลาง' as const };
-      const revenue = Math.round((route.price / 12) * sales.licensesSold * 0.15);
+      const sales = ROUTE_SALES[route.id] ?? { purchases: 120, demand: 'ปานกลาง' as const };
+      const revenuePerPurchase = getCreatorRevenuePerPurchase();
+      const revenue = revenuePerPurchase * sales.purchases;
       return {
         routeId: route.id,
         rank: 0,
         title: route.title,
         image: route.image,
         aiMatch: route.aiMatch,
-        licensesSold: sales.licensesSold,
+        purchases: sales.purchases,
         revenue,
         revenueFormatted: formatPrice(revenue),
         tags: route.tags.slice(0, 3),
@@ -99,7 +110,7 @@ export function getCreatorRoutePerformance(): CreatorRoutePerformance[] {
 export function getCreatorDashboardStats(): CreatorDashboardStats {
   const performances = getCreatorRoutePerformance();
   const routes = getCreatorMarketplaceRoutes();
-  const licensesSold = performances.reduce((sum, p) => sum + p.licensesSold, 0);
+  const purchases = performances.reduce((sum, p) => sum + p.purchases, 0);
   const monthlyRevenue = performances.reduce((sum, p) => sum + p.revenue, 0);
   const avgRating =
     routes.length > 0 ? routes.reduce((sum, r) => sum + r.rating, 0) / routes.length : 0;
@@ -110,7 +121,7 @@ export function getCreatorDashboardStats(): CreatorDashboardStats {
 
   return {
     routeCount: routes.length,
-    licensesSold,
+    purchases,
     monthlyRevenue,
     monthlyRevenueFormatted: formatPrice(monthlyRevenue),
     communitiesLinked: Math.max(communityStops.size, 5),
@@ -130,7 +141,7 @@ export function getCreatorAiMatches(): CreatorAiMatchItem[] {
 }
 
 export const CREATOR_ECOSYSTEM_LINKS: CreatorEcosystemLink[] = [
-  { type: 'โรงแรม', name: 'The Memory at On On Hotel', status: 'ใช้งานไลเซนส์' },
+  { type: 'โรงแรม', name: 'The Memory at On On Hotel', status: 'ขายผ่านโรงแรม' },
   { type: 'ร้านค้า', name: 'หมี่ฮกเกี้ยนตลาดใหญ่', status: 'อยู่ในเส้นทาง' },
   { type: 'ชุมชน', name: 'ชุมชนบ้านบ่อแร่', status: 'ได้รับการสนับสนุน' },
   { type: 'ชุมชน', name: 'ชุมชนย่านเมืองเก่า', status: 'อยู่ในเส้นทาง' },
@@ -143,7 +154,7 @@ export const CREATOR_IMPACT_METRICS = [
     key: 'creator-income',
     label: 'รายได้ครีเอเตอร์',
     labelEn: 'Creator Income',
-    desc: 'รายได้จากไลเซนส์เส้นทางของสมชายในเดือนนี้',
+    desc: 'รายได้จากการซื้อเส้นทางของนักท่องเที่ยวในเดือนนี้',
     value: formatPrice(getCreatorDashboardStats().monthlyRevenue),
     trend: '+18%',
     trendUp: true,

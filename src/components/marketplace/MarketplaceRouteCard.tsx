@@ -1,35 +1,32 @@
 import { Link } from 'react-router-dom';
+import { motion, useReducedMotion } from 'motion/react';
 import { Star, Sparkles, MapPin, Clock, Verified, Trees } from 'lucide-react';
 import {
   type MarketplaceRoute,
   CATEGORY_META,
-  formatPrice,
 } from '../../data/marketplaceRoutes';
-import { getRouteLicensePricing } from '../../data/routePricing';
+import { formatPerPersonPrice } from '../../data/routePricing';
+import { cardHover, cardTap, fadeUp } from '../../lib/motion';
+import ProfileAvatar from '../ProfileAvatar';
 import RouteTrail from './RouteTrail';
 
-function RoutePriceFrom({ yearlyPrice, large }: { yearlyPrice: number; large?: boolean }) {
-  const pricing = getRouteLicensePricing(yearlyPrice);
+function RoutePriceFrom({ routePrice, large }: { routePrice: number; large?: boolean }) {
   if (large) {
     return (
       <div className="text-right">
         <p className="text-xl font-extrabold text-on-surface">
-          {formatPrice(pricing.weekly)}
-          <span className="text-sm font-normal text-secondary">/สัปดาห์</span>
+          {formatPerPersonPrice(routePrice)}
         </p>
-        <p className="text-[11px] text-secondary mt-0.5">
-          หรือ {formatPrice(pricing.monthly)}/เดือน
-        </p>
+        <p className="text-[11px] text-secondary mt-0.5">จองได้ตามจำนวนคน</p>
       </div>
     );
   }
   return (
     <div className="text-right">
       <p className="font-extrabold text-primary text-sm">
-        {formatPrice(pricing.weekly)}
-        <span className="text-[10px] font-normal text-secondary">/สัปดาห์</span>
+        {formatPerPersonPrice(routePrice)}
       </p>
-      <p className="text-[10px] text-secondary">{formatPrice(pricing.monthly)}/เดือน</p>
+      <p className="text-[10px] text-secondary">จองตามจำนวนคน</p>
     </div>
   );
 }
@@ -37,18 +34,35 @@ function RoutePriceFrom({ yearlyPrice, large }: { yearlyPrice: number; large?: b
 export function MarketplaceRouteCard({
   route,
   variant = 'default',
+  index = 0,
 }: {
   route: MarketplaceRoute;
   variant?: 'default' | 'featured' | 'compact';
+  index?: number;
 }) {
   const meta = CATEGORY_META[route.category];
+  const reduceMotion = useReducedMotion();
+
+  const entrance = reduceMotion
+    ? {}
+    : {
+        variants: fadeUp,
+        initial: 'hidden' as const,
+        whileInView: 'visible' as const,
+        viewport: { once: true, margin: '-40px' as const },
+        transition: { delay: Math.min(index * 0.06, 0.36) },
+      };
+
+  const hover = reduceMotion ? undefined : cardHover;
+  const tap = reduceMotion ? undefined : cardTap;
 
   if (variant === 'featured') {
     return (
-      <Link
-        to={`/route/${route.id}`}
-        className="group relative rounded-2xl overflow-hidden border border-surface-variant bg-surface-container-lowest shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col md:flex-row min-h-[280px]"
-      >
+      <motion.div {...entrance} whileHover={hover} whileTap={tap}>
+        <Link
+          to={`/route/${route.id}`}
+          className="group relative rounded-2xl overflow-hidden border border-surface-variant bg-surface-container-lowest shadow-sm hover:shadow-xl transition-shadow duration-300 flex flex-col md:flex-row min-h-[280px]"
+        >
         <div className="md:w-1/2 h-56 md:h-auto relative overflow-hidden">
           <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent md:bg-gradient-to-r md:from-transparent md:to-black/20" />
@@ -77,7 +91,7 @@ export function MarketplaceRouteCard({
           <div className="mt-auto flex items-end justify-between gap-4">
             <CreatorChip route={route} />
             <div className="text-right">
-              <RoutePriceFrom yearlyPrice={route.price} large />
+              <RoutePriceFrom routePrice={route.price} large />
               <div className="flex items-center gap-1 justify-end mt-1">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span className="text-sm font-bold">{route.rating}</span>
@@ -86,35 +100,39 @@ export function MarketplaceRouteCard({
           </div>
         </div>
       </Link>
+      </motion.div>
     );
   }
 
   if (variant === 'compact') {
     return (
-      <Link
-        to={`/route/${route.id}`}
-        className="group flex gap-3 p-3 rounded-xl border border-surface-variant bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all"
-      >
+      <motion.div {...entrance} whileHover={hover} whileTap={tap}>
+        <Link
+          to={`/route/${route.id}`}
+          className="group flex gap-3 p-3 rounded-xl border border-surface-variant bg-surface-container-lowest hover:border-primary/40 hover:shadow-md transition-all"
+        >
         <img src={route.image} alt={route.title} className="w-16 h-16 rounded-lg object-cover shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="font-bold text-sm text-on-surface truncate group-hover:text-primary">{route.title}</p>
           <p className="text-xs text-secondary truncate">{route.creator.name}</p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs font-bold text-primary">
-              {formatPrice(getRouteLicensePricing(route.price).weekly)}/สัปดาห์
+              {formatPerPersonPrice(route.price)}
             </span>
             <span className="text-[10px] text-violet-600 font-bold">AI {route.aiMatch}%</span>
           </div>
         </div>
       </Link>
+      </motion.div>
     );
   }
 
   return (
-    <Link
-      to={`/route/${route.id}`}
-      className="group bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-primary/30 transition-all duration-300 flex flex-col h-full"
-    >
+    <motion.div {...entrance} whileHover={hover} whileTap={tap} className="h-full">
+      <Link
+        to={`/route/${route.id}`}
+        className="group bg-surface-container-lowest border border-outline-variant rounded-2xl overflow-hidden hover:shadow-[0_12px_40px_rgba(0,0,0,0.08)] hover:border-primary/30 transition-all duration-300 flex flex-col h-full"
+      >
       <div className="h-44 relative overflow-hidden">
         <img src={route.image} alt={route.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
         <div className="absolute top-3 left-3 flex flex-wrap gap-1.5">
@@ -145,17 +163,23 @@ export function MarketplaceRouteCard({
             <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{route.stops} จุด</span>
             <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{route.duration}</span>
           </div>
-          <RoutePriceFrom yearlyPrice={route.price} />
+          <RoutePriceFrom routePrice={route.price} />
         </div>
       </div>
     </Link>
+    </motion.div>
   );
 }
 
 function CreatorChip({ route, small }: { route: MarketplaceRoute; small?: boolean }) {
   return (
     <div className={`flex items-center gap-2 ${small ? 'mb-2' : ''}`}>
-      <img src={route.creator.avatar} alt={route.creator.name} className={`rounded-full object-cover border border-surface-variant ${small ? 'w-6 h-6' : 'w-8 h-8'}`} />
+      <ProfileAvatar
+        src={route.creator.avatar}
+        alt={route.creator.name}
+        tone="creator"
+        size={small ? '2xs' : 'xs'}
+      />
       <div className="min-w-0">
         <p className={`font-medium text-on-surface truncate flex items-center gap-1 ${small ? 'text-xs' : 'text-sm'}`}>
           {route.creator.name}

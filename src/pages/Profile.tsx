@@ -1,24 +1,21 @@
-import React from 'react';
 import { Camera, Verified, Lock, Mail, Key, Save } from 'lucide-react';
+import ProfileAvatar from '../components/ProfileAvatar';
+import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
 import { PROFILE_AVATAR } from '../data/profileAvatar';
 
 export default function Profile() {
   return (
-    <div className="p-6 md:p-12 lg:p-16 w-full max-w-7xl mx-auto space-y-12">
-      <header className="mb-10">
+    <MotionPage className="p-6 md:p-12 lg:p-16 w-full max-w-7xl mx-auto space-y-12">
+      <MotionHeader className="mb-10">
         <h2 className="font-display-lg text-4xl md:text-5xl font-bold text-on-surface mb-2 tracking-tight">โปรไฟล์และตั้งค่า</h2>
         <p className="font-body-lg text-xl text-secondary">จัดการข้อมูลครีเอเตอร์และบัญชีรับเงิน</p>
-      </header>
+      </MotionHeader>
 
       <div className="space-y-8">
-        <section className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] flex flex-col lg:flex-row gap-10 items-start border border-outline-variant/30">
+        <MotionSection className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] flex flex-col lg:flex-row gap-10 items-start border border-outline-variant/30">
           <div className="relative shrink-0 mx-auto lg:mx-0">
-            <div className="w-40 h-40 md:w-48 md:h-48 rounded-full overflow-hidden border-4 border-surface-container-lowest shadow-md">
-              <img src={PROFILE_AVATAR} 
-                    alt="รูปโปรไฟล์" 
-                    className="w-full h-full object-cover" />
-            </div>
-            <button className="absolute bottom-2 right-2 w-12 h-12 bg-primary text-on-primary rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-4 focus:ring-primary-container">
+            <ProfileAvatar src={PROFILE_AVATAR} alt="รูปโปรไฟล์" tone="creator" size="lg" />
+            <button className="absolute bottom-2 right-2 w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-4 focus:ring-emerald-200">
               <Camera className="w-5 h-5" />
             </button>
           </div>
@@ -53,9 +50,9 @@ export default function Profile() {
               </div>
             </div>
           </div>
-        </section>
+        </MotionSection>
 
-        <section className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/30">
+        <MotionSection className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/30">
           <div className="flex items-center gap-4 mb-8">
             <div className="w-12 h-12 rounded-xl bg-primary-container text-primary flex items-center justify-center">
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><line x1="2" x2="22" y1="10" y2="10"/></svg>
@@ -89,9 +86,9 @@ export default function Profile() {
               <p className="font-medium text-xs text-secondary mt-2">ใช้สำหรับการจ่ายเงินรายสัปดาห์ให้ครีเอเตอร์โดยอัตโนมัติ</p>
             </div>
           </div>
-        </section>
+        </MotionSection>
 
-        <section className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/30">
+        <MotionSection className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] border border-outline-variant/30">
           <div className="flex items-center gap-4 mb-8">
             <div className="w-12 h-12 rounded-xl bg-primary-container text-primary flex items-center justify-center">
               <Lock className="w-6 h-6" />
@@ -139,7 +136,7 @@ export default function Profile() {
               </button>
             </div>
           </div>
-        </section>
+        </MotionSection>
 
         <div className="flex justify-end pt-6 pb-12">
           <button className="w-full md:w-auto px-10 h-16 bg-primary text-on-primary rounded-full font-bold shadow-lg hover:shadow-xl hover:-translate-y-1 active:translate-y-0 active:scale-95 transition-all flex items-center justify-center gap-2 text-lg focus:outline-none focus:ring-4 focus:ring-primary/30">
@@ -148,7 +145,7 @@ export default function Profile() {
           </button>
         </div>
       </div>
-    </div>
+    </MotionPage>
   );
 }
 

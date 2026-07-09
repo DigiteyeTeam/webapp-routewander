@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { ChevronRight, Send, User, Loader2 } from 'lucide-react';
 import aiMascot from '../../images/rwai1.png';
 import { useRouteWanderChat } from '../../hooks/useRouteWanderChat';
+import { resolveChatCards } from '../../lib/chatCards';
+import { PORTAL_AI_CONFIG } from '../../config/portalAiChat';
+import { ChatMessageBody } from '../chat/ChatRichMessage';
+
+const marketplaceConfig = PORTAL_AI_CONFIG.marketplace;
+const WELCOME_CARDS = resolveChatCards(marketplaceConfig.welcomeCards);
 
 function MascotAvatar({ className = 'w-9 h-9' }: { className?: string }) {
   return <img src={aiMascot} alt="" className={`object-contain shrink-0 ${className}`} draggable={false} />;
 }
-
-const INITIAL_MESSAGE =
-  'สวัสดีครับ! ผม RouteWander AI ช่วยแนะนำเส้นทางชุมชนภูเก็ต จับคู่ประสบการณ์ให้แขก หรือตอบคำถามเรื่องชุมชนท้องถิ่นได้เลยครับ';
 
 export function MapAICollapsedFab({ onOpen }: { onOpen: () => void }) {
   return (
@@ -31,7 +34,11 @@ interface MapAIChatPanelProps {
 
 export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
   const [message, setMessage] = useState('');
-  const { chat, loading, sendMessage } = useRouteWanderChat(INITIAL_MESSAGE);
+  const { chat, loading, sendMessage } = useRouteWanderChat({
+    role: 'marketplace',
+    initialMessage: marketplaceConfig.initialMessage,
+    initialCards: WELCOME_CARDS,
+  });
 
   const handleSend = () => {
     if (!message.trim() || loading) return;
@@ -50,7 +57,7 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
             </div>
             <div className="min-w-0">
               <p className="font-bold text-sm leading-tight truncate">RouteWander AI</p>
-              <p className="text-[10px] text-white/80">แนะนำเส้นทางชุมชน · Gemini</p>
+              <p className="text-[10px] text-white/80">ผู้เชี่ยวชาญ 15 ชุมชนภูเก็ต</p>
             </div>
           </div>
           <button
@@ -76,13 +83,21 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
                 </div>
               )}
               <div
-                className={`px-3 py-2.5 max-w-[88%] text-xs leading-relaxed rounded-2xl whitespace-pre-wrap ${
+                className={`px-3 py-2.5 max-w-[92%] text-xs leading-relaxed rounded-2xl ${
                   msg.role === 'user'
-                    ? 'bg-primary text-white rounded-tr-sm'
+                    ? 'bg-primary text-white rounded-tr-sm whitespace-pre-wrap'
                     : 'bg-surface border border-surface-variant text-on-surface rounded-tl-sm'
                 }`}
               >
-                {msg.text}
+                {msg.role === 'user' ? (
+                  msg.text
+                ) : (
+                  <ChatMessageBody
+                    compact
+                    text={msg.notice ? `${msg.text}\n---\n⚠️ ${msg.notice}` : msg.text}
+                    cards={msg.cards}
+                  />
+                )}
               </div>
             </div>
           ))}
@@ -101,7 +116,7 @@ export default function MapAIChatPanel({ onCollapse }: MapAIChatPanelProps) {
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder="ถามเรื่องเส้นทาง..."
+              placeholder="ถามเรื่องเส้นทางหรือชุมชน..."
               disabled={loading}
               className="w-full h-10 pl-3 pr-10 rounded-xl border border-surface-variant bg-surface-container-low text-sm focus:outline-none focus:border-primary disabled:opacity-60"
             />

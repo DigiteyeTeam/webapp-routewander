@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import {
   PlusCircle,
   ArrowRight,
@@ -20,6 +19,9 @@ import {
   Link2,
   Verified,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import ProfileAvatar from '../components/ProfileAvatar';
+import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
 import {
   MOCK_CREATOR_PROFILE,
   getCreatorDashboardStats,
@@ -101,9 +103,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="p-6 md:p-10 lg:p-14 w-full max-w-7xl mx-auto space-y-10">
+    <MotionPage className="p-6 md:p-10 lg:p-14 w-full max-w-7xl mx-auto space-y-10">
       {/* Header */}
-      <header className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
+      <MotionHeader className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider">
             RW Innovation
@@ -122,15 +124,11 @@ export default function Dashboard() {
           <PlusCircle className="w-5 h-5" />
           สร้างเส้นทางใหม่
         </Link>
-      </header>
+      </MotionHeader>
 
       {/* Creator profile */}
-      <section className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 md:p-6 rounded-2xl bg-surface-container-lowest border border-surface-variant shadow-sm">
-        <img
-          src={profile.avatar}
-          alt={profile.name}
-          className="w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-4 border-primary/15 shrink-0"
-        />
+      <MotionSection className="flex flex-col sm:flex-row items-center sm:items-start gap-5 p-5 md:p-6 rounded-2xl bg-surface-container-lowest border border-surface-variant shadow-sm">
+        <ProfileAvatar src={profile.avatar} alt={profile.name} tone="creator" size="md" />
         <div className="flex-1 text-center sm:text-left min-w-0">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
             <h2 className="font-headline-md text-xl md:text-2xl font-bold text-on-surface">{profile.name}</h2>
@@ -155,10 +153,10 @@ export default function Dashboard() {
         >
           แก้ไขโปรไฟล์
         </Link>
-      </section>
+      </MotionSection>
 
       {/* IMPACT */}
-      <section className="rounded-2xl overflow-hidden border border-primary/20 shadow-sm">
+      <MotionSection className="rounded-2xl overflow-hidden border border-primary/20 shadow-sm">
         <div className="bg-primary px-5 py-3 flex items-center gap-3">
           <div className="w-9 h-9 rounded-lg bg-white/20 flex items-center justify-center">
             <Target className="w-5 h-5 text-white" />
@@ -189,10 +187,10 @@ export default function Dashboard() {
             );
           })}
         </div>
-      </section>
+      </MotionSection>
 
       {/* 4 Innovations overview */}
-      <section>
+      <MotionSection>
         <h2 className="font-headline-md text-xl font-bold text-on-surface mb-4">4 นวัตกรรมหลักของ RouteWander</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {INNOVATIONS.map((inv) => {
@@ -212,10 +210,10 @@ export default function Dashboard() {
             );
           })}
         </div>
-      </section>
+      </MotionSection>
 
       {/* Pillar 1 + 3: Creator Economy + Community Intelligence */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <MotionSection className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Creator Economy Engine */}
         <div className="bg-surface-container-lowest rounded-2xl border border-emerald-200 shadow-sm overflow-hidden flex flex-col">
           <div className="px-6 py-4 border-b border-emerald-100 bg-emerald-50 flex items-center gap-3">
@@ -232,8 +230,8 @@ export default function Dashboard() {
                 <p className="text-xs text-secondary mt-1">เส้นทางของฉัน</p>
               </div>
               <div className="bg-surface rounded-xl p-4 border border-surface-variant text-center">
-                <p className="text-3xl font-extrabold text-primary">{stats.licensesSold}</p>
-                <p className="text-xs text-secondary mt-1">ไลเซนส์ขายแล้ว</p>
+                <p className="text-3xl font-extrabold text-primary">{stats.purchases}</p>
+                <p className="text-xs text-secondary mt-1">ซื้อเส้นทางแล้ว</p>
               </div>
               <div className="bg-surface rounded-xl p-4 border border-surface-variant text-center">
                 <p className="text-3xl font-extrabold text-on-surface">{stats.monthlyRevenueFormatted}</p>
@@ -313,10 +311,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </section>
+      </MotionSection>
 
       {/* Pillar 2 + 4: AI Matching + Ecosystem */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <MotionSection className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* AI Experience Matching */}
         <div className="bg-surface-container-lowest rounded-2xl border border-violet-200 shadow-sm overflow-hidden">
           <div className="px-6 py-4 border-b border-violet-100 bg-violet-50 flex items-center gap-3">
@@ -396,10 +394,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </section>
+      </MotionSection>
 
       {/* Top performing routes */}
-      <section className="space-y-5">
+      <MotionSection className="space-y-5">
         <div className="flex items-end justify-between gap-4">
           <div>
             <h2 className="font-headline-lg text-2xl font-bold text-on-surface">เส้นทางของฉัน</h2>
@@ -429,8 +427,8 @@ export default function Dashboard() {
                 <h3 className="font-bold text-lg text-on-surface truncate mb-3">{route.title}</h3>
                 <div className="flex flex-wrap gap-x-10 gap-y-2">
                   <div>
-                    <span className="block text-[10px] font-bold text-secondary uppercase mb-0.5">ไลเซนส์</span>
-                    <span className="text-lg font-bold text-on-surface">{route.licensesSold}</span>
+                    <span className="block text-[10px] font-bold text-secondary uppercase mb-0.5">ซื้อแล้ว</span>
+                    <span className="text-lg font-bold text-on-surface">{route.purchases}</span>
                   </div>
                   <div>
                     <span className="block text-[10px] font-bold text-secondary uppercase mb-0.5">รายได้</span>
@@ -447,7 +445,7 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-      </section>
-    </div>
+      </MotionSection>
+    </MotionPage>
   );
 }

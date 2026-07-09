@@ -18,7 +18,7 @@ import {
   formatPrice,
   type MarketplaceRoute,
 } from '../../data/marketplaceRoutes';
-import { getRouteLicensePricing } from '../../data/routePricing';
+import { formatPerPersonPrice } from '../../data/routePricing';
 export function MapSlidePanel({
   onClose,
   children,
@@ -216,11 +216,7 @@ export function RouteMapDetail({ route }: { route: MarketplaceRoute }) {
 
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <span className="text-base font-bold text-primary">
-            {formatPrice(getRouteLicensePricing(route.price).weekly)}
-          </span>
-          <span className="text-[11px] text-on-surface-variant">/ สัปดาห์</span>
-          <span className="text-[11px] text-secondary">
-            · {formatPrice(getRouteLicensePricing(route.price).monthly)}/เดือน
+            {formatPerPersonPrice(route.price)}
           </span>
           <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2.5 py-1 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />

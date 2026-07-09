@@ -28,6 +28,12 @@
   body {
     @apply bg-surface text-on-surface font-body-md;
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 /* Leaflet markers & popups for route creator */
@@ -190,4 +196,14 @@
 .map-detail-scroll::-webkit-scrollbar-thumb {
   background: rgba(22, 163, 74, 0.35);
   border-radius: 9999px;
+}
+
+.login-page,
+.login-creator-card {
+  background-color: #3b9165;
+  background-image:
+    radial-gradient(circle, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
+    linear-gradient(to right, #5eb36d, #3b9165);
+  background-size: 22px 22px, 100% 100%;
+  background-position: 0 0, 0 0;
 }

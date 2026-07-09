@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import { useEffect, useMemo } from 'react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import type { RouteWaypoint } from '../../types/route';
 import { getRouteCenter } from '../../data/routeStore';
-import { fetchOsrmRoutePathSingle } from '../../utils/osrmRoute';
 
 L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
 
@@ -54,33 +53,8 @@ function MapFocus({ center, zoom }: { center: { lat: number; lng: number }; zoom
   return null;
 }
 
-export default function RouteDetailMap({ waypoints, color = '#16a34a' }: { waypoints: RouteWaypoint[]; color?: string }) {
+export default function RouteDetailMap({ waypoints }: { waypoints: RouteWaypoint[]; color?: string }) {
   const center = useMemo(() => getRouteCenter(waypoints), [waypoints]);
-  const [routePath, setRoutePath] = useState<[number, number][]>([]);
-
-  useEffect(() => {
-    if (waypoints.length < 2) {
-      setRoutePath(waypoints.map((w) => [w.location.lat, w.location.lng]));
-      return;
-    }
-
-    let cancelled = false;
-    const points = waypoints.map((wp) => wp.location);
-
-    fetchOsrmRoutePathSingle(points, 'foot')
-      .then((path) => {
-        if (!cancelled) setRoutePath(path);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setRoutePath(waypoints.map((w) => [w.location.lat, w.location.lng]));
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [waypoints]);
 
   const zoom = waypoints.length <= 1 ? 14 : waypoints.length <= 3 ? 13 : 12;
 
@@ -100,10 +74,6 @@ export default function RouteDetailMap({ waypoints, color = '#16a34a' }: { waypo
           />
           <MapResizeFix />
           <MapFocus center={center} zoom={zoom} />
-
-          {routePath.length > 1 && (
-            <Polyline positions={routePath} pathOptions={{ color, weight: 4, opacity: 0.85 }} />
-          )}
 
           {waypoints.map((wp, i) => (
             <Marker

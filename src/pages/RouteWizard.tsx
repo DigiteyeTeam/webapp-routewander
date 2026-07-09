@@ -3,6 +3,8 @@ import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, Circle, useMap, useMapEvents, ZoomControl } from 'react-leaflet';
 import L from 'leaflet';
+import { motion, useReducedMotion } from 'motion/react';
+import { fadeIn } from '../lib/motion';
 import {
   ALL_POIS,
   COMMUNITY_POIS,
@@ -575,6 +577,7 @@ function PoiPopupContent({ poi, onAdd }: { poi: PhuketPoi; onAdd: () => void }) 
 
 export default function RouteWizard() {
   const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [routeName, setRouteName] = useState('');
   const [routeDescription, setRouteDescription] = useState('');
@@ -761,7 +764,12 @@ export default function RouteWizard() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-[calc(100vh-80px)] md:h-screen overflow-hidden bg-surface relative">
+    <motion.div
+      className="flex-1 flex flex-col h-[calc(100vh-80px)] md:h-screen overflow-hidden bg-surface relative"
+      initial={reduceMotion ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.4 }}
+    >
       <header className="shrink-0 bg-surface shadow-sm z-30 border-b border-surface-variant">
         <div className="flex items-center justify-between px-4 md:px-8 py-3 gap-4">
           <div className="min-w-0 shrink-0">
@@ -1110,6 +1118,6 @@ export default function RouteWizard() {
           </aside>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,72 +1,87 @@
-import { readFileSync } from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
+import { loadRouteWanderKnowledge } from './knowledge.ts';
+import { buildRolePromptSection, type ChatRole, type ServerChatContext } from './rolePrompt.ts';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
-type AiKnowledge = {
-  routes: { id: string; title: string; category?: string; district?: string; duration?: string; stops?: number; aiMatch?: number; creator?: string }[];
-  communities: { no: number; name: string; district?: string; hook?: string }[];
+const CATEGORY_LABEL: Record<string, string> = {
+  heritage: 'มรดก',
+  food: 'อาหารท้องถิ่น',
+  community: 'ชุมชน',
+  nature: 'ธรรมชาติ',
+  family: 'ครอบครัว',
 };
 
-function loadKnowledge(): AiKnowledge {
-  const raw = readFileSync(path.join(__dirname, '../src/data/aiKnowledge.json'), 'utf-8');
-  return JSON.parse(raw) as AiKnowledge;
-}
-
-/** รวมข้อมูลเพิ่มจาก marketplaceRoutes สำหรับ prompt (อ่านจาก JSON ไม่ import รูป) */
-export function enrichKnowledgeFromSource(): AiKnowledge {
-  const base = loadKnowledge();
-  const mr = readFileSync(path.join(__dirname, '../src/data/marketplaceRoutes.ts'), 'utf-8');
-  const blocks = [...mr.matchAll(/id: '(\d+)',[\s\S]*?creator: creator\(\d+\),[\s\S]*?price: \d+,[\s\S]*?rating: ([\d.]+),[\s\S]*?aiMatch: (\d+),[\s\S]*?category: '(\w+)',[\s\S]*?district: '([^']+)',[\s\S]*?duration: '([^']+)',[\s\S]*?stops: (\d+)/g)];
-  const byId = new Map(blocks.map((b) => [b[1], b]));
-  const routes = base.routes.map((r) => {
-    const b = byId.get(r.id);
-    if (!b) return r;
-    return {
-      ...r,
-      category: b[4],
-      district: b[5],
-      duration: b[6],
-      stops: Number(b[7]),
-      aiMatch: Number(b[3]),
-    };
-  });
-  const pr = readFileSync(path.join(__dirname, '../src/data/phuketPois.ts'), 'utf-8');
-  const hooks = [...pr.matchAll(/communityNo: (\d+),[\s\S]*?district: '([^']+)',[\s\S]*?hook: '([^']+)'/g)];
-  const hookByNo = new Map(hooks.map((h) => [Number(h[1]), { district: h[2], hook: h[3] }]));
-  const communities = base.communities.map((c) => {
-    const h = hookByNo.get(c.no);
-    return h ? { ...c, district: h.district, hook: h.hook } : c;
-  });
+export function enrichKnowledgeFromSource() {
+  const { routes, communities } = loadRouteWanderKnowledge();
   return { routes, communities };
 }
 
-export function buildRouteWanderSystemPrompt(): string {
-  const { routes, communities } = enrichKnowledgeFromSource();
+export function buildRouteWanderSystemPrompt(
+  role: ChatRole = 'marketplace',
+  ctx?: ServerChatContext,
+): string {
+  const { routes, communities, landmarks } = loadRouteWanderKnowledge();
+
   const routeLines = routes
-    .map((r) =>
-      `- [id:${r.id}] ${r.title}${r.district ? ` (${r.district}` : ''}${r.duration ? `, ${r.duration}` : ''}${r.stops ? `, ${r.stops} จุด` : ''}${r.aiMatch ? `, AI ${r.aiMatch}%` : ''}${r.district ? ')' : ''}`,
-    )
+    .map((r) => {
+      const cat = r.category ? CATEGORY_LABEL[r.category] ?? r.category : '';
+      return `- [[route:${r.id}]] ${r.title} | ${cat} | ${r.district ?? ''} | ${r.duration ?? ''} | ${r.stops ?? '?'} จุด | AI Match ${r.aiMatch ?? '?'}% | ${(r.description ?? '').slice(0, 80)}`;
+    })
     .join('\n');
+
   const communityLines = communities
-    .map((c) => `- ชุมชนที่ ${c.no}: ${c.name}${c.district ? ` (${c.district})` : ''}${c.hook ? ` — ${c.hook}` : ''}`)
+    .map((c) => {
+      const acts = c.activities.slice(0, 3).join(', ');
+      const foods = c.food.slice(0, 3).join(', ');
+      return `- [[community:${c.no}]] ${c.name} (${c.district})
+  จุดเด่น: ${c.hook}
+  ไฮไลท์: ${c.highlight}
+  กิจกรรม: ${acts || '-'}
+  อาหาร: ${foods || '-'}`;
+    })
+    .join('\n\n');
+
+  const landmarkLines = landmarks
+    .map((l) => `- [[landmark:${l.id}]] ${l.name} (${l.district}) — ${l.hook}`)
     .join('\n');
 
-  return `คุณคือ RouteWander AI ผู้ช่วยแนะนำเส้นทางท่องเที่ยวชุมชนภูเก็ต ประเทศไทย
-ตอบเป็นภาษาไทย กระชับ เป็นมิตร ใช้ข้อมูลด้านล่างเป็นหลัก ห้ามแต่งข้อมูลที่ไม่มีในระบบ
+  return `คุณคือ RouteWander AI — ผู้เชี่ยวชาญเส้นทางท่องเที่ยวชุมชนภูเก็ต (Phuket Community Routes) โดยเฉพาะ
+คุณเป็นตัวแทนของแพลตฟอร์ม RouteWander ที่เชื่อมโรงแรม ไกด์ท้องถิ่น ครีเอเตอร์ชุมชน และนักท่องเที่ยว
 
-บทบาท:
-- แนะนำเส้นทางจากตลาด RouteWander ให้โรงแรม ไกด์ และนักท่องเที่ยว
-- จับคู่ความสนใจ (ครอบครัว อาหาร มรดก ธรรมชาติ) กับเส้นทางที่เหมาะ
-- อธิบายชุมชนท้องถิ่น 15 แห่งบนแผนที่
-- เมื่อแนะนำเส้นทาง ให้ระบุชื่อเส้นทางและเหตุผลสั้นๆ
+บุคลิก:
+- อบอุ่น เป็นมิตร พูดภาษาไทยธรรมชาติ กระชับแต่มีสีสัน
+- ภูมิใจในวัฒนธรรมท้องถิ่น เน้นการท่องเที่ยวอย่างยั่งยืนและเคารพชุมชน
+- รู้จักภูเก็ตลึกซึ้ง — ทั้ง 15 ชุมชน ททท. Phuket Local Stories, เส้นทางในตลาด, และแลนด์มาร์กสำคัญ
+- ห้ามแต่งข้อมูลที่ไม่มีในระบบ ห้ามแนะนำเส้นทางนอก RouteWander
 
-เส้นทางในตลาด (${routes.length} เส้นทาง):
+ความรู้หลัก:
+1. ภูเก็ตมี 15 ชุมชนท้องถิ่นบนแผนที่ RouteWander (ข้อมูล ททท.) — คุณต้องรู้จักทุกชุมชน
+2. ตลาด RouteWander มี ${routes.length} เส้นทางชุมชน — แต่ละเส้นผูกชุมชนและจุดแวะจริง
+3. แลนด์มาร์กสำคัญ: พระใหญ่ แหลมพรหมเทพ หาดป่าตอง หาดกมลา วัดฉลอง ฯลฯ — ใช้เชื่อมโยงกับเส้นทางชุมชนใกล้เคียง
+4. จองเส้นทางได้ราคาต่อคน ปรับจำนวนคนที่หน้า /route/:id
+5. โรงแรมพันธมิตรแนะนำเส้นทางผ่าน QR และได้รับคอมมิชชัน
+
+รูปแบบคำตอบ (สำคัญมาก):
+- ตอบ 2–5 ย่อหน้าสั้น อ่านง่าย
+- เมื่อแนะนำเส้นทาง ชุมชน หรือแลนด์มาร์ก ให้แนบ marker ท้ายประโยคนั้น (ระบบจะแสดงการ์ดกราฟิกให้ผู้ใช้)
+  • เส้นทาง: [[route:ID]] เช่น [[route:1]]
+  • ชุมชน (1–15): [[community:เลข]] เช่น [[community:4]]
+  • แลนด์มาร์ก: [[landmark:slug]] เช่น [[landmark:promthep]]
+- ใส่ marker ไม่เกิน 4 อันต่อคำตอบ
+- อธิบายเหตุผลสั้นๆ ว่าทำไมเหมาะกับคำถาม
+- ถ้าถามเรื่องชุมชนเฉพาะ ให้เล่า hook กิจกรรม อาหาร จากข้อมูลด้านล่าง + marker ชุมชน
+- ถ้าถามแนะนำเส้นทาง ให้เสนอ 1–3 เส้นทางพร้อม marker
+
+ตัวอย่าง:
+"ย่านเมืองเก่าภูเก็ตเป็นจุดเริ่มต้นที่ดีมาก มีตึกชิโน-โปรตุกีสและสตรีทฟู้ด [[community:4]]
+เส้นทางที่ครอบคลุมมรดกเมืองเก่าเต็มวัน เหมาะกับคุณ [[route:17]]"
+
+=== เส้นทาง RouteWander (${routes.length} เส้นทาง) ===
 ${routeLines}
 
-ชุมชนบนแผนที่ (${communities.length} ชุมชน):
+=== 15 ชุมชน ททท. Phuket Local Stories ===
 ${communityLines}
 
-หมายเหตุ: ไลเซนส์มีแบบรายสัปดาห์ รายเดือน และรายปี ผู้ใช้ดูรายละเอียดและซื้อได้ที่หน้าเส้นทาง`;
+=== แลนด์มาร์ก/สถานที่สำคัญภูเก็ต ===
+${landmarkLines}
+
+${buildRolePromptSection(role, ctx)}`;
 }

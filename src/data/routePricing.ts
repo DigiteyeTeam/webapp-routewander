@@ -1,32 +1,30 @@
 import { formatPrice } from './marketplaceRoutes';
 
-export type LicensePeriod = 'weekly' | 'monthly' | 'yearly';
+const MIN_GUESTS = 1;
+const MAX_GUESTS = 20;
 
-export interface RouteLicensePricing {
-  weekly: number;
-  monthly: number;
-  yearly: number;
+/** ราคาต่อคนต่อการจอง (บาท) — รองรับข้อมูลเดิมที่เก็บราคาไลเซนส์รายปี */
+export function getRoutePricePerPerson(routePrice: number): number {
+  if (routePrice > 2000) {
+    return Math.max(450, Math.round(routePrice / 8 / 50) * 50);
+  }
+  return routePrice;
 }
 
-export const LICENSE_PERIOD_LABEL: Record<LicensePeriod, string> = {
-  weekly: 'สัปดาห์',
-  monthly: 'เดือน',
-  yearly: 'ปี',
-};
-
-/** ราคาไลเซนส์รายสัปดาห์ / รายเดือน / รายปี จากราคาฐานรายปี */
-export function getRouteLicensePricing(yearlyPrice: number): RouteLicensePricing {
-  const yearly = yearlyPrice;
-  const monthly = Math.max(690, Math.round(yearly / 14));
-  const weekly = Math.max(199, Math.round(monthly / 3.5));
-  return { weekly, monthly, yearly };
+export function clampGuestCount(count: number): number {
+  return Math.min(MAX_GUESTS, Math.max(MIN_GUESTS, count));
 }
 
-export function formatPriceWithPeriod(price: number, period: LicensePeriod): string {
-  return `${formatPrice(price)}/${LICENSE_PERIOD_LABEL[period]}`;
+export function calculateBookingTotal(routePrice: number, guestCount: number): number {
+  return getRoutePricePerPerson(routePrice) * clampGuestCount(guestCount);
 }
 
-export function formatStartingWeeklyPrice(yearlyPrice: number): string {
-  const { weekly } = getRouteLicensePricing(yearlyPrice);
-  return `เริ่มต้น ${formatPrice(weekly)}/สัปดาห์`;
+export function formatPerPersonPrice(routePrice: number): string {
+  return `${formatPrice(getRoutePricePerPerson(routePrice))}/คน`;
 }
+
+export function formatBookingTotal(routePrice: number, guestCount: number): string {
+  return formatPrice(calculateBookingTotal(routePrice, guestCount));
+}
+
+export { MIN_GUESTS, MAX_GUESTS };

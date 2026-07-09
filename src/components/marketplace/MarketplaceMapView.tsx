@@ -10,7 +10,7 @@ import {
   getRouteCenter,
   type MarketplaceRoute,
 } from '../../data/marketplaceRoutes';
-import { getRouteLicensePricing } from '../../data/routePricing';
+import { formatPerPersonPrice } from '../../data/routePricing';
 import { COMMUNITY_POIS } from '../../data/phuketPois';
 import MapAIChatPanel, { MapAICollapsedFab } from './MapAIChatPanel';
 import WelcomeOverlay from '../WelcomeOverlay';
@@ -284,7 +284,7 @@ export default function MarketplaceMapView({
                 <p className="text-xs text-secondary truncate">{route.creator.name}</p>
                 <div className="flex items-center gap-2 mt-1">
                   <span className="text-xs font-bold text-primary">
-                    {formatPrice(getRouteLicensePricing(route.price).weekly)}/สัปดาห์
+                    {formatPerPersonPrice(route.price)}
                   </span>
                   <span className="text-[10px] text-violet-600 font-bold flex items-center gap-0.5">
                     <Sparkles className="w-3 h-3" /> {route.aiMatch}%

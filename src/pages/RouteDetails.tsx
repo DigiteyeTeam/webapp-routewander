@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import {
   CheckCircle,
   MapPin,
@@ -17,18 +18,39 @@ import {
   ArrowLeft,
   Star,
   Route as RouteIcon,
+  Building2,
+  Minus,
+  Plus,
+  ShoppingCart,
 } from 'lucide-react';
 import { getRouteById, formatDistance, formatDurationLong } from '../data/routeStore';
 import { formatPrice } from '../data/marketplaceRoutes';
 import {
-  getRouteLicensePricing,
-  formatPriceWithPeriod,
-  LICENSE_PERIOD_LABEL,
-  type LicensePeriod,
+  calculateBookingTotal,
+  clampGuestCount,
+  formatBookingTotal,
+  formatPerPersonPrice,
+  getRoutePricePerPerson,
+  MAX_GUESTS,
+  MIN_GUESTS,
 } from '../data/routePricing';
 import { WAYPOINT_TYPE_LABELS, type WaypointType } from '../types/route';
 import RouteDetailMap from '../components/route/RouteDetailMap';
 import RouteTrail from '../components/marketplace/RouteTrail';
+import ProfileAvatar from '../components/ProfileAvatar';
+import { useHotelReferral } from '../context/HotelReferralContext';
+import { useCart } from '../context/CartContext';
+import { calculateBookingSplit } from '../data/hotelProfile';
+import {
+  fadeIn,
+  fadeUp,
+  scaleIn,
+  slideFromLeft,
+  slideFromRight,
+  springSnappy,
+  staggerContainer,
+  timelineItem,
+} from '../lib/motion';
 
 function getTypeIcon(type: WaypointType) {
   switch (type) {
@@ -52,67 +74,142 @@ function getTypeIcon(type: WaypointType) {
 }
 
 function NotFound() {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div className="text-center py-24">
-      <RouteIcon className="w-16 h-16 mx-auto mb-4 text-surface-variant" />
+    <motion.div
+      className="text-center py-24"
+      initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div
+        initial={reduceMotion ? false : { scale: 0.8, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.1, ...springSnappy }}
+      >
+        <RouteIcon className="w-16 h-16 mx-auto mb-4 text-surface-variant" />
+      </motion.div>
       <h1 className="text-2xl font-bold mb-2">ไม่พบเส้นทาง</h1>
       <p className="text-secondary mb-6">เส้นทางนี้อาจถูกลบหรือไม่มีอยู่ในระบบ</p>
       <Link to="/" className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors">
         <ArrowLeft className="w-4 h-4" />
         กลับตลาดเส้นทาง
       </Link>
-    </div>
+    </motion.div>
   );
 }
 
 export default function RouteDetails() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const reduceMotion = useReducedMotion();
   const route = useMemo(() => (id ? getRouteById(id) : null), [id]);
-  const [licensePeriod, setLicensePeriod] = useState<LicensePeriod>('weekly');
+  const [guestCount, setGuestCount] = useState(1);
+  const [added, setAdded] = useState(false);
+  const { referralHotel } = useHotelReferral();
+  const { addItem } = useCart();
 
   if (!route) return <NotFound />;
 
-  const pricing = getRouteLicensePricing(route.price);
-  const selectedPrice = pricing[licensePeriod];
+  const pricePerPerson = getRoutePricePerPerson(route.price);
+  const subtotal = calculateBookingTotal(route.price, guestCount);
+  const hotelSplit = referralHotel ? calculateBookingSplit(subtotal, true, 1) : null;
+  const checkoutTotal = hotelSplit?.gross ?? subtotal;
   const distanceLabel = formatDistance(route.routeStats?.distance);
   const durationLabel = route.routeStats ? formatDurationLong(route.routeStats.duration) : route.duration;
-
-  const licenseOptions: {
-    period: LicensePeriod;
-    title: string;
-    desc: string;
-  }[] = [
-    { period: 'weekly', title: 'รายสัปดาห์', desc: 'ทดลองใช้งานหรือแคมเปญสั้น' },
-    { period: 'monthly', title: 'รายเดือน', desc: 'ยืดหยุ่น เหมาะกับโรงแรมขนาดกลาง' },
-    { period: 'yearly', title: 'รายปี', desc: 'คุ้มที่สุดสำหรับใช้งานตลอดฤดูกาล' },
-  ];
-  const heroImage =
-    route.image ||
-    'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1200&q=80';
 
   const aiReasons = [
     `สอดคล้องกับกลุ่มที่สนใจ${route.categoryLabel}`,
     route.tags.includes('ครอบครัว')
       ? 'เหมาะกับแขกที่มาพร้อมครอบครัว'
       : 'ระยะเวลาเหมาะกับกิจกรรมครึ่งวัน',
-    `ได้รับคะแนนสูง ${route.rating}/5 จากผู้ใช้ไลเซนส์`,
+    `ได้รับคะแนนสูง ${route.rating}/5 จากนักท่องเที่ยวที่จอง`,
   ];
 
-  return (
-    <div className="space-y-10 pb-20">
-      <Link
-        to="/"
-        className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        กลับตลาดเส้นทาง
-      </Link>
+  const heroImage =
+    route.image ||
+    'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?auto=format&fit=crop&w=1200&q=80';
 
-      <div className="w-full h-[38vh] md:h-[46vh] rounded-3xl overflow-hidden relative">
-        <img src={heroImage} alt={route.title} className="w-full h-full object-cover" />
+  const adjustGuests = (delta: number) => {
+    setGuestCount((prev) => clampGuestCount(prev + delta));
+    setAdded(false);
+  };
+
+  const handleAddToCart = () => {
+    if (!route) return;
+    const ok = addItem({
+      routeId: route.id,
+      guestCount,
+      hotel: referralHotel ? { slug: referralHotel.slug, name: referralHotel.name } : undefined,
+    });
+    if (ok) setAdded(true);
+  };
+
+  return (
+    <motion.div
+      key={route.id}
+      className="space-y-10 pb-20"
+      initial={reduceMotion ? false : 'hidden'}
+      animate="visible"
+      variants={staggerContainer(0.08, 0.04)}
+    >
+      {referralHotel && (
+        <motion.div
+          variants={slideFromLeft}
+          className="rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3"
+        >
+          <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center shrink-0">
+            <Building2 className="w-5 h-5" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs font-bold text-orange-700 uppercase tracking-wider">จองผ่านโรงแรมพันธมิตร</p>
+            <p className="font-bold text-on-surface">
+              {referralHotel.name}
+              {referralHotel.isHeadquarters && (
+                <span className="ml-2 text-[10px] font-bold uppercase tracking-wider text-orange-600">สาขาใหญ่</span>
+              )}
+            </p>
+            <p className="text-xs text-secondary font-mono mt-0.5">{referralHotel.name} {referralHotel.slug}</p>
+          </div>
+          {hotelSplit && hotelSplit.guestSavings > 0 && (
+            <p className="text-sm font-bold text-orange-700 shrink-0">
+              ประหยัด {formatPrice(hotelSplit.guestSavings)} จากราคาปกติ
+            </p>
+          )}
+        </motion.div>
+      )}
+
+      <motion.div variants={fadeIn}>
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm font-bold text-secondary hover:text-primary transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          กลับตลาดเส้นทาง
+        </Link>
+      </motion.div>
+
+      <motion.div
+        variants={scaleIn}
+        className="w-full h-[38vh] md:h-[46vh] rounded-3xl overflow-hidden relative"
+      >
+        <motion.img
+          src={heroImage}
+          alt={route.title}
+          className="w-full h-full object-cover"
+          initial={reduceMotion ? false : { scale: 1.08 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 text-white">
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+        <motion.div
+          className="absolute bottom-6 left-6 right-6 md:bottom-8 md:left-8 md:right-8 text-white"
+          variants={staggerContainer(0.08, 0.15)}
+          initial={reduceMotion ? false : 'hidden'}
+          animate="visible"
+        >
+          <motion.div variants={fadeUp} className="flex flex-wrap items-center gap-2 mb-3">
             <span
               className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider text-white"
               style={{ backgroundColor: route.categoryColor }}
@@ -125,19 +222,30 @@ export default function RouteDetails() {
             {route.district && (
               <span className="bg-white/15 backdrop-blur px-3 py-1 rounded-full text-xs font-bold">{route.district}</span>
             )}
-          </div>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-display-lg mb-2">{route.title}</h1>
-          <p className="text-base md:text-lg text-white/90 max-w-3xl">{route.description}</p>
-        </div>
-      </div>
+          </motion.div>
+          <motion.h1 variants={fadeUp} className="text-3xl md:text-4xl lg:text-5xl font-bold font-display-lg mb-2">
+            {route.title}
+          </motion.h1>
+          <motion.p variants={fadeUp} className="text-base md:text-lg text-white/90 max-w-3xl">
+            {route.description}
+          </motion.p>
+        </motion.div>
+      </motion.div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 lg:gap-12">
-        <div className="lg:col-span-2 space-y-10">
-          <div className="flex items-center justify-between p-5 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm">
+        <motion.div
+          className="lg:col-span-2 space-y-10"
+          variants={staggerContainer(0.1, 0.08)}
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
+          <motion.div
+            variants={fadeUp}
+            className="flex items-center justify-between p-5 md:p-6 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-sm"
+          >
             <div className="flex items-center gap-4 min-w-0">
-              <div className="w-14 h-14 md:w-16 md:h-16 rounded-full overflow-hidden border-2 border-surface-variant shrink-0">
-                <img src={route.creator.avatar} alt={route.creator.name} className="w-full h-full object-cover" />
-              </div>
+              <ProfileAvatar src={route.creator.avatar} alt={route.creator.name} tone="creator" size="card" />
               <div className="min-w-0">
                 <h3 className="font-bold text-lg text-on-surface truncate">{route.creator.name}</h3>
                 <p className="text-secondary text-sm">
@@ -149,11 +257,19 @@ export default function RouteDetails() {
               <Star className="w-4 h-4 fill-amber-400" />
               {route.rating}
             </div>
-          </div>
+          </motion.div>
 
-          <section>
+          <motion.section variants={fadeUp}>
             <h3 className="text-2xl font-bold mb-4">เส้นทางบนแผนที่</h3>
-            <RouteDetailMap waypoints={route.waypoints} color={route.categoryColor} />
+            <motion.div
+              className="rounded-2xl overflow-hidden"
+              initial={reduceMotion ? false : { opacity: 0, scale: 0.98 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.55, delay: 0.1 }}
+            >
+              <RouteDetailMap waypoints={route.waypoints} color={route.categoryColor} />
+            </motion.div>
             <div className="mt-4 p-4 bg-surface-container-low rounded-2xl">
               <RouteTrail
                 waypoints={route.waypoints.map((w) => ({ name: w.name, lat: w.location.lat, lng: w.location.lng }))}
@@ -161,14 +277,21 @@ export default function RouteDetails() {
                 maxDots={6}
               />
             </div>
-          </section>
+          </motion.section>
 
-          <section>
+          <motion.section variants={fadeUp}>
             <h3 className="text-2xl font-bold mb-4">จุดแวะตามลำดับ ({route.waypoints.length})</h3>
-            <div className="space-y-0 border border-surface-variant rounded-2xl overflow-hidden bg-surface-container-lowest">
+            <motion.div
+              className="space-y-0 border border-surface-variant rounded-2xl overflow-hidden bg-surface-container-lowest"
+              variants={staggerContainer(0.06, 0.05)}
+              initial={reduceMotion ? false : 'hidden'}
+              whileInView="visible"
+              viewport={{ once: true, margin: '-20px' }}
+            >
               {route.waypoints.map((wp, index) => (
-                <div
+                <motion.div
                   key={wp.id}
+                  variants={timelineItem}
                   className={`flex gap-4 p-4 md:p-5 ${index < route.waypoints.length - 1 ? 'border-b border-surface-variant' : ''}`}
                 >
                   <div className="flex flex-col items-center shrink-0">
@@ -187,15 +310,15 @@ export default function RouteDetails() {
                     <p className="font-bold text-on-surface">{wp.name}</p>
                     {wp.description && <p className="text-sm text-secondary mt-1 leading-relaxed">{wp.description}</p>}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
-          </section>
+            </motion.div>
+          </motion.section>
 
-          <section>
+          <motion.section variants={fadeUp}>
             <h3 className="text-2xl font-bold mb-4">เกี่ยวกับเส้นทางนี้</h3>
             <p className="text-on-surface-variant leading-relaxed text-lg mb-6">
-              {route.description} เมื่อซื้อไลเซนส์ คุณช่วยสนับสนุนชุมชนในภูเก็ตโดยตรงผ่านครีเอเตอร์ท้องถิ่น
+              {route.description} เมื่อจองเส้นทาง คุณช่วยสนับสนุนชุมชนในภูเก็ตโดยตรงผ่านครีเอเตอร์ท้องถิ่น
             </p>
             <div className="flex flex-wrap gap-6 text-on-surface-variant bg-surface-container-low p-6 rounded-2xl">
               <div className="flex items-center gap-3">
@@ -229,15 +352,22 @@ export default function RouteDetails() {
               )}
             </div>
             <div className="flex flex-wrap gap-2 mt-4">
-              {route.tags.map((tag) => (
-                <span key={tag} className="px-3 py-1 rounded-full text-xs font-bold bg-surface border border-surface-variant text-secondary">
+              {route.tags.map((tag, i) => (
+                <motion.span
+                  key={tag}
+                  initial={reduceMotion ? false : { opacity: 0, scale: 0.9 }}
+                  whileInView={{ opacity: 1, scale: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.05 }}
+                  className="px-3 py-1 rounded-full text-xs font-bold bg-surface border border-surface-variant text-secondary"
+                >
                   {tag}
-                </span>
+                </motion.span>
               ))}
             </div>
-          </section>
+          </motion.section>
 
-          <section>
+          <motion.section variants={fadeUp}>
             <h3 className="text-2xl font-bold mb-4">ข้อมูลเชิงลึกจาก AI</h3>
             <div className="bg-gradient-to-br from-primary/10 to-surface border border-primary/20 p-6 rounded-2xl">
               <div className="flex items-start gap-4">
@@ -257,70 +387,145 @@ export default function RouteDetails() {
                 </div>
               </div>
             </div>
-          </section>
-        </div>
+          </motion.section>
+        </motion.div>
 
-        <div className="lg:col-span-1">
+        <motion.div
+          className="lg:col-span-1"
+          variants={slideFromRight}
+          initial={reduceMotion ? false : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-40px' }}
+        >
           <div className="bg-surface-container-lowest border border-outline-variant rounded-3xl p-6 shadow-soft sticky top-24">
-            <h3 className="text-xl font-bold mb-6">ตัวเลือกไลเซนส์</h3>
+            {referralHotel && (
+              <div className="mb-6 p-4 rounded-2xl border border-orange-200 bg-orange-50/80">
+                <p className="text-[10px] font-bold text-orange-700 uppercase tracking-wider mb-1">โรงแรมที่อ้างอิง</p>
+                <p className="font-bold text-on-surface">{referralHotel.name}</p>
+                <p className="text-xs text-secondary font-mono mt-1">{referralHotel.slug}</p>
+              </div>
+            )}
 
-            {licenseOptions.map((option) => {
-              const isSelected = licensePeriod === option.period;
-              const amount = pricing[option.period];
-              return (
-                <label
-                  key={option.period}
-                  className={`block border-2 rounded-2xl p-5 mb-4 cursor-pointer transition-colors relative ${
-                    isSelected
-                      ? 'border-primary bg-primary-container/20'
-                      : 'border-surface-variant hover:border-primary/50'
-                  }`}
+            <h3 className="text-xl font-bold mb-6">จองเส้นทาง</h3>
+
+            <div className="border-2 border-primary bg-primary-container/20 rounded-2xl p-5 mb-5">
+              <p className="text-sm text-secondary mb-1">ราคาต่อคน</p>
+              <div className="flex items-baseline gap-2 flex-wrap">
+                {hotelSplit && hotelSplit.listPrice > pricePerPerson && (
+                  <span className="text-lg text-secondary line-through">
+                    {formatPrice(Math.round(hotelSplit.listPrice / guestCount))}
+                  </span>
+                )}
+                <span className="text-3xl font-extrabold">{formatPrice(pricePerPerson)}</span>
+                <span className="text-secondary font-medium">/ คน</span>
+              </div>
+            </div>
+
+            <div className="mb-6">
+              <label htmlFor="guest-count" className="block text-sm font-medium text-on-surface mb-2">
+                จำนวนคน
+              </label>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => adjustGuests(-1)}
+                  disabled={guestCount <= MIN_GUESTS}
+                  className="w-11 h-11 rounded-xl border border-surface-variant bg-surface flex items-center justify-center text-on-surface hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="ลดจำนวนคน"
                 >
-                  <input
-                    type="radio"
-                    name="license"
-                    className="absolute opacity-0"
-                    checked={isSelected}
-                    onChange={() => setLicensePeriod(option.period)}
-                  />
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <span className="font-bold text-lg block">{option.title}</span>
-                      <span className="text-sm text-secondary">{option.desc}</span>
-                    </div>
-                    <div
-                      className={`w-5 h-5 rounded-full shrink-0 ${
-                        isSelected ? 'border-4 border-primary bg-white' : 'border-2 border-surface-variant bg-white'
-                      }`}
-                    />
-                  </div>
-                  <div className="mt-4 flex items-baseline gap-1">
-                    <span className="text-3xl font-extrabold">{formatPrice(amount)}</span>
-                    <span className="text-secondary font-medium">/ {LICENSE_PERIOD_LABEL[option.period]}</span>
-                  </div>
-                </label>
-              );
-            })}
+                  <Minus className="w-4 h-4" />
+                </button>
+                <input
+                  id="guest-count"
+                  type="number"
+                  min={MIN_GUESTS}
+                  max={MAX_GUESTS}
+                  value={guestCount}
+                  onChange={(e) => {
+                    setGuestCount(clampGuestCount(Number(e.target.value) || MIN_GUESTS));
+                    setAdded(false);
+                  }}
+                  className="flex-1 text-center rounded-xl border border-surface-variant bg-surface px-3 py-2.5 text-lg font-bold outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+                <button
+                  type="button"
+                  onClick={() => adjustGuests(1)}
+                  disabled={guestCount >= MAX_GUESTS}
+                  className="w-11 h-11 rounded-xl border border-surface-variant bg-surface flex items-center justify-center text-on-surface hover:border-primary/50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  aria-label="เพิ่มจำนวนคน"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+              <p className="text-xs text-secondary mt-2">
+                ราคารวม {guestCount} คน · {formatPerPersonPrice(route.price)}
+              </p>
+            </div>
 
-            <ul className="space-y-3 mb-8 mt-2">
+            <div className="flex items-center justify-between p-4 rounded-xl bg-surface-container-low border border-surface-variant mb-6">
+              <span className="text-sm font-medium text-on-surface-variant">ยอดชำระทั้งหมด</span>
+              <div className="text-right overflow-hidden">
+                {hotelSplit && hotelSplit.listPrice > checkoutTotal && (
+                  <span className="text-sm text-secondary line-through block">{formatPrice(hotelSplit.listPrice)}</span>
+                )}
+                <AnimatePresence mode="popLayout">
+                  <motion.span
+                    key={checkoutTotal}
+                    initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.25 }}
+                    className="text-2xl font-extrabold text-on-surface block"
+                  >
+                    {formatPrice(checkoutTotal)}
+                  </motion.span>
+                </AnimatePresence>
+              </div>
+            </div>
+
+            <ul className="space-y-3 mb-8">
               <li className="flex items-start gap-3 text-sm text-on-surface-variant">
-                <ShieldCheck className="w-5 h-5 text-primary shrink-0" /> สิทธิ์ใช้งานและแจกจ่ายให้ลูกค้าของคุณ
+                <ShieldCheck className="w-5 h-5 text-primary shrink-0" /> เข้าถึงแผนที่ จุดแวะ และภารกิจบนเส้นทาง
               </li>
               <li className="flex items-start gap-3 text-sm text-on-surface-variant">
-                <Edit className="w-5 h-5 text-primary shrink-0" /> <b>ปรับแต่งได้:</b> แก้จุดแวะ เพิ่มแบรนด์ และปรับรายละเอียด
+                <Edit className="w-5 h-5 text-primary shrink-0" /> สะสมแบดจ์และบันทึกประสบการณ์ระหว่างเดินทาง
               </li>
               <li className="flex items-start gap-3 text-sm text-on-surface-variant">
-                <Zap className="w-5 h-5 text-primary shrink-0" /> อัปเดตและปรับเส้นทางจาก AI ฟรี
+                <Zap className="w-5 h-5 text-primary shrink-0" /> รายได้ส่งตรงสู่ชุมชนและครีเอเตอร์ท้องถิ่น
               </li>
             </ul>
 
-            <button className="w-full h-14 bg-primary text-on-primary rounded-xl font-bold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all text-lg mb-3">
-              ซื้อไลเซนส์ {formatPriceWithPeriod(selectedPrice, licensePeriod)}
-            </button>
+            <motion.button
+              type="button"
+              onClick={handleAddToCart}
+              whileHover={reduceMotion ? undefined : { y: -2, boxShadow: '0 12px 28px rgba(22, 163, 74, 0.25)' }}
+              whileTap={reduceMotion ? undefined : { scale: 0.98 }}
+              animate={added && !reduceMotion ? { scale: [1, 1.02, 1] } : undefined}
+              transition={springSnappy}
+              className="w-full h-14 bg-primary text-on-primary rounded-xl font-bold shadow-md hover:shadow-lg transition-shadow text-lg mb-3 flex items-center justify-center gap-2"
+            >
+              <ShoppingCart className="w-5 h-5" />
+              {added ? 'เพิ่มลงตะกร้าแล้ว' : `เพิ่มลงตะกร้า · ${formatBookingTotal(route.price, guestCount)}`}
+            </motion.button>
+            <AnimatePresence>
+              {added && (
+                <motion.button
+                  type="button"
+                  initial={reduceMotion ? false : { opacity: 0, height: 0, marginBottom: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginBottom: 12 }}
+                  exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                  transition={{ duration: 0.3 }}
+                  onClick={() => navigate('/cart')}
+                  className="w-full h-12 border-2 border-primary text-primary rounded-xl font-bold hover:bg-primary-container/20 transition-colors overflow-hidden"
+                >
+                  ไปที่ตะกร้า
+                </motion.button>
+              )}
+            </AnimatePresence>
             <p className="text-center text-xs text-secondary">รายได้ส่งตรงถึง {route.creator.name}</p>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -1,7 +1,8 @@
 const DEFAULT_MODELS = [
-  'gemini-2.0-flash-lite',
-  'gemini-1.5-flash',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
   'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
 ] as const;
 
 export function getGeminiModels(): string[] {
@@ -14,10 +15,12 @@ export function validateApiKeyFormat(apiKey: string | undefined): string | null 
   if (!apiKey?.trim()) {
     return 'ยังไม่ได้ตั้งค่า GEMINI_API_KEY ในไฟล์ .env';
   }
-  if (!apiKey.startsWith('AIza')) {
-    return 'API key รูปแบบไม่ถูกต้อง — ต้องใช้ key จาก Google AI Studio (ขึ้นต้น AIzaSy...) ที่ https://aistudio.google.com/apikey';
+  const key = apiKey.trim();
+  // Standard key (legacy) หรือ Authorization key ใหม่จาก AI Studio (ขึ้นต้น AQ.)
+  if (key.startsWith('AIza') || key.startsWith('AQ.')) {
+    return null;
   }
-  return null;
+  return 'API key รูปแบบไม่ถูกต้อง — สร้าง key จาก https://aistudio.google.com/apikey (ขึ้นต้น AIzaSy... หรือ AQ....)';
 }
 
 export function toUserFacingGeminiError(raw: unknown): string {
@@ -46,7 +49,10 @@ export function toUserFacingGeminiError(raw: unknown): string {
   }
 
   if (code === 429 || apiMessage.includes('RESOURCE_EXHAUSTED') || apiMessage.includes('quota')) {
-    return 'โควต้า Gemini API หมดหรือ key นี้ไม่มีสิทธิ์ free tier — สร้าง API key ใหม่ที่ Google AI Studio (ขึ้นต้น AIzaSy...) แล้วใส่ใน .env จากนั้นรัน npm run dev ใหม่';
+    if (apiMessage.includes('limit: 0')) {
+      return 'โปรเจกต Google Cloud ของ API key นี้ยังไม่มีโควต้า Free tier (limit: 0) — เปิด Billing ที่ Google Cloud Console หรือสร้าง API key ใหม่ในโปรเจกตที่เปิด Generative Language API แล้ว จากนั้นรัน npm run dev ใหม่';
+    }
+    return 'โควต้า Gemini API หมดชั่วคราว — รอสักครู่แล้วลองใหม่ หรือตรวจสอบแผน/โควต้าที่ https://ai.dev/rate-limit';
   }
 
   if (code === 400 || apiMessage.toLowerCase().includes('api key not valid')) {
