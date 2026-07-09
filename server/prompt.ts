@@ -1,5 +1,5 @@
-import { loadRouteWanderKnowledge } from './knowledge.ts';
-import { buildRolePromptSection, type ChatRole, type ServerChatContext } from './rolePrompt.ts';
+import { loadRouteWanderKnowledge } from './knowledge';
+import { buildRolePromptSection, type ChatRole, type ServerChatContext } from './rolePrompt';
 
 const CATEGORY_LABEL: Record<string, string> = {
   heritage: 'มรดก',

@@ -1,9 +1,9 @@
-import { GoogleGenAI } from '@google/genai';
-import { buildRouteWanderSystemPrompt } from './prompt.ts';
-import { getGeminiModels, toUserFacingGeminiError, validateApiKeyFormat } from './geminiErrors.ts';
-import { generateMockChatReply } from './mockChat.ts';
-import { extractChatCardRefs, stripChatMarkers } from './chatMarkers.ts';
-import type { ChatRole, ServerChatContext } from './rolePrompt.ts';
+import { buildRouteWanderSystemPrompt } from './prompt';
+import { getChatConfig } from './chatConfig';
+import { toUserFacingGeminiError } from './geminiErrors';
+import { generateMockChatReply } from './mockChat';
+import { extractChatCardRefs, stripChatMarkers } from './chatMarkers';
+import type { ChatRole, ServerChatContext } from './rolePrompt';
 
 export type ChatRequestBody = {
   messages?: { role: string; text: string }[];
@@ -11,29 +11,7 @@ export type ChatRequestBody = {
   context?: ServerChatContext;
 };
 
-function getConfig() {
-  const CHAT_MODE = (process.env.CHAT_MODE?.trim() || 'auto').toLowerCase();
-  const apiKey = process.env.GEMINI_API_KEY?.trim();
-  const keyFormatError = validateApiKeyFormat(apiKey);
-  const forceMock = CHAT_MODE === 'mock';
-  const geminiEnabled = !forceMock && Boolean(apiKey && !keyFormatError);
-  const ai = geminiEnabled ? new GoogleGenAI({ apiKey: apiKey! }) : null;
-  const models = getGeminiModels();
-
-  return { CHAT_MODE, keyFormatError, geminiEnabled, ai, models };
-}
-
-export function getHealthPayload() {
-  const { keyFormatError, geminiEnabled, models } = getConfig();
-  const mode = geminiEnabled ? 'gemini' : 'mock';
-  return {
-    ok: true,
-    mode,
-    gemini: geminiEnabled,
-    models,
-    keyWarning: keyFormatError,
-  };
-}
+export { getHealthPayload } from './chatConfig';
 
 function buildChatPayload(rawText: string, extra?: Record<string, unknown>) {
   const cards = extractChatCardRefs(rawText);
@@ -46,7 +24,7 @@ export async function handleChatRequest(body: ChatRequestBody) {
   const role = body?.role ?? 'marketplace';
   const context = body?.context;
   const systemPrompt = buildRouteWanderSystemPrompt(role, context);
-  const { CHAT_MODE, geminiEnabled, ai, models } = getConfig();
+  const { CHAT_MODE, apiKey, geminiEnabled, models } = getChatConfig();
 
   if (!Array.isArray(messages) || messages.length === 0) {
     return { status: 400 as const, body: { error: 'messages is required' } };
@@ -63,17 +41,19 @@ export async function handleChatRequest(body: ChatRequestBody) {
     return { status: 400 as const, body: { error: 'no valid messages' } };
   }
 
-  if (!geminiEnabled) {
+  if (!geminiEnabled || !apiKey) {
     const raw = await generateMockChatReply(messages, role, context);
     return { status: 200 as const, body: buildChatPayload(raw, { model: 'mock', mode: 'mock' }) };
   }
 
   try {
+    const { GoogleGenAI } = await import('@google/genai');
+    const ai = new GoogleGenAI({ apiKey });
     let lastError: unknown;
 
     for (const model of models) {
       try {
-        const response = await ai!.models.generateContent({
+        const response = await ai.models.generateContent({
           model,
           contents,
           config: {

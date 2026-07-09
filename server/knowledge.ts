@@ -1,13 +1,10 @@
 import { existsSync, readFileSync } from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 function resolveDataPath(filename: string) {
   const candidates = [
-    path.join(__dirname, '../src/data', filename),
     path.join(process.cwd(), 'src/data', filename),
+    path.join(process.cwd(), 'data', filename),
   ];
   for (const p of candidates) {
     if (existsSync(p)) return p;

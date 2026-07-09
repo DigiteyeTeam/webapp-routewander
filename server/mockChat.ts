@@ -1,5 +1,5 @@
-import { loadRouteWanderKnowledge } from './knowledge.ts';
-import type { ChatRole, ServerChatContext } from './rolePrompt.ts';
+import { loadRouteWanderKnowledge } from './knowledge';
+import type { ChatRole, ServerChatContext } from './rolePrompt';
 
 type ChatMsg = { role: string; text: string };
 

@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { getHealthPayload, handleChatRequest } from './chatHandler.ts';
+import { getHealthPayload, handleChatRequest } from './chatHandler';
 
 dotenv.config({ path: '.env.local' });
 dotenv.config({ path: '.env' });
