@@ -9,6 +9,6 @@
     },
     "api/health.ts": {
       "maxDuration": 10
-    },
+    }
   }
 }
