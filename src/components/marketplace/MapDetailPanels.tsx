@@ -19,6 +19,7 @@ import {
   type MarketplaceRoute,
 } from '../../data/marketplaceRoutes';
 import { formatPerPersonPrice } from '../../data/routePricing';
+import VehicleServiceNote from '../route/VehicleServiceNote';
 export function MapSlidePanel({
   onClose,
   children,
@@ -216,13 +217,14 @@ export function RouteMapDetail({ route }: { route: MarketplaceRoute }) {
 
         <div className="flex flex-wrap items-center gap-2 mt-4">
           <span className="text-base font-bold text-primary">
-            {formatPerPersonPrice(route.price)}
+            {formatPerPersonPrice(route.price, route)}
           </span>
           <span className="ml-auto inline-flex items-center gap-1 text-xs font-bold text-violet-600 bg-violet-50 border border-violet-100 px-2.5 py-1 rounded-full">
             <Sparkles className="w-3.5 h-3.5" />
             AI {route.aiMatch}%
           </span>
         </div>
+        <VehicleServiceNote route={route} className="mt-2" />
 
         {route.tags.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mt-3">

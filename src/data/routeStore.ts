@@ -55,6 +55,7 @@ function marketplaceToDetail(route: MarketplaceRoute): RouteDetail {
     district: route.district,
     duration: route.duration,
     stops: route.stops,
+    vehicleServicePerHour: route.vehicleServicePerHour,
     waypoints,
     routeStats: null,
     source: 'marketplace',

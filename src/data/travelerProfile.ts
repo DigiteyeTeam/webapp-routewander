@@ -1,5 +1,5 @@
 import { formatPrice, MARKETPLACE_ROUTES } from './marketplaceRoutes';
-import { PROFILE_AVATAR } from './profileAvatar';
+import { TRAVELER_AVATAR } from './profileAvatar';
 import type { CheckoutOrderItem } from '../types/cart';
 
 const PURCHASES_STORAGE_KEY = 'routewander-purchases';
@@ -76,7 +76,7 @@ export const MOCK_TRAVELER_PROFILE: TravelerProfile = {
   name: 'คุณมิ้นท์',
   tagline: 'นักท่องเที่ยว RouteWander · ชอบเส้นทางชุมชนและอาหารท้องถิ่น',
   memberSince: 'ม.ค. 2026',
-  avatar: PROFILE_AVATAR,
+  avatar: TRAVELER_AVATAR,
   level: 3,
   xp: 420,
   xpToNextLevel: 600,

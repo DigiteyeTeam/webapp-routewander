@@ -8,7 +8,7 @@ import { getMarketplaceNav } from '../config/navigation';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { ROLE_LABELS } from '../types/auth';
-import { PROFILE_AVATAR } from '../data/profileAvatar';
+import { getProfileAvatarForRole } from '../data/profileAvatar';
 import { headerReveal } from '../lib/motion';
 
 export type MarketplaceOutletContext = {
@@ -91,7 +91,7 @@ export default function MarketplaceLayout() {
             <>
               <Link to={profileLink} className="hover:opacity-90 transition-opacity">
                 <ProfileAvatar
-                  src={PROFILE_AVATAR}
+                  src={getProfileAvatarForRole(role)}
                   alt="รูปโปรไฟล์"
                   tone={roleToAvatarTone(role)}
                   size="sm"

@@ -9,24 +9,27 @@ import { formatPerPersonPrice } from '../../data/routePricing';
 import { cardHover, cardTap, fadeUp } from '../../lib/motion';
 import ProfileAvatar from '../ProfileAvatar';
 import RouteTrail from './RouteTrail';
+import VehicleServiceNote from '../route/VehicleServiceNote';
 
-function RoutePriceFrom({ routePrice, large }: { routePrice: number; large?: boolean }) {
+function RoutePriceFrom({ route, large }: { route: MarketplaceRoute; large?: boolean }) {
   if (large) {
     return (
       <div className="text-right">
         <p className="text-xl font-extrabold text-on-surface">
-          {formatPerPersonPrice(routePrice)}
+          {formatPerPersonPrice(route.price, route)}
         </p>
         <p className="text-[11px] text-secondary mt-0.5">จองได้ตามจำนวนคน</p>
+        <VehicleServiceNote route={route} className="justify-end mt-1" />
       </div>
     );
   }
   return (
     <div className="text-right">
       <p className="font-extrabold text-primary text-sm">
-        {formatPerPersonPrice(routePrice)}
+        {formatPerPersonPrice(route.price, route)}
       </p>
       <p className="text-[10px] text-secondary">จองตามจำนวนคน</p>
+      <VehicleServiceNote route={route} className="justify-end mt-0.5 max-w-[140px] ml-auto" />
     </div>
   );
 }
@@ -91,7 +94,7 @@ export function MarketplaceRouteCard({
           <div className="mt-auto flex items-end justify-between gap-4">
             <CreatorChip route={route} />
             <div className="text-right">
-              <RoutePriceFrom routePrice={route.price} large />
+              <RoutePriceFrom route={route} large />
               <div className="flex items-center gap-1 justify-end mt-1">
                 <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
                 <span className="text-sm font-bold">{route.rating}</span>
@@ -117,8 +120,9 @@ export function MarketplaceRouteCard({
           <p className="text-xs text-secondary truncate">{route.creator.name}</p>
           <div className="flex items-center gap-2 mt-1">
             <span className="text-xs font-bold text-primary">
-              {formatPerPersonPrice(route.price)}
+              {formatPerPersonPrice(route.price, route)}
             </span>
+            <VehicleServiceNote route={route} className="mt-0.5" />
             <span className="text-[10px] text-violet-600 font-bold">AI {route.aiMatch}%</span>
           </div>
         </div>
@@ -163,7 +167,7 @@ export function MarketplaceRouteCard({
             <span className="flex items-center gap-0.5"><MapPin className="w-3 h-3" />{route.stops} จุด</span>
             <span className="flex items-center gap-0.5"><Clock className="w-3 h-3" />{route.duration}</span>
           </div>
-          <RoutePriceFrom routePrice={route.price} />
+          <RoutePriceFrom route={route} />
         </div>
       </div>
     </Link>

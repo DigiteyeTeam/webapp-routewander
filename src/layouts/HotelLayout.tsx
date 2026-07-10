@@ -8,7 +8,7 @@ import { HOTEL_LIBRARY_PATH } from '../config/navigation';
 import { PortalMobileBackdrop, PortalPageOutlet } from '../components/motion/PortalMotion';
 import PortalAIChatWidget from '../components/chat/PortalAIChatWidget';
 import { useAuth } from '../context/AuthContext';
-import { PROFILE_AVATAR } from '../data/profileAvatar';
+import { HOTEL_AVATAR } from '../data/profileAvatar';
 import { slideFromLeft } from '../lib/motion';
 
 export default function HotelLayout() {
@@ -109,7 +109,7 @@ export default function HotelLayout() {
             <Menu className="w-6 h-6" />
           </button>
           <span className="font-bold text-primary text-sm">{user?.name ?? 'โรงแรม'}</span>
-          <ProfileAvatar src={PROFILE_AVATAR} alt="" tone="hotel" size="xs" />
+          <ProfileAvatar src={HOTEL_AVATAR} alt="" tone="hotel" size="xs" />
         </motion.header>
 
         <AnimatePresence>

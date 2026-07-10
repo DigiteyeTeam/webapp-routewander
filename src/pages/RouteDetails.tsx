@@ -25,12 +25,14 @@ import {
 } from 'lucide-react';
 import { getRouteById, formatDistance, formatDurationLong } from '../data/routeStore';
 import { formatPrice } from '../data/marketplaceRoutes';
+import VehicleServiceNote from '../components/route/VehicleServiceNote';
 import {
   calculateBookingTotal,
   clampGuestCount,
   formatBookingTotal,
   formatPerPersonPrice,
   getRoutePricePerPerson,
+  getRoutePricePerPersonWithVehicle,
   MAX_GUESTS,
   MIN_GUESTS,
 } from '../data/routePricing';
@@ -112,8 +114,9 @@ export default function RouteDetails() {
 
   if (!route) return <NotFound />;
 
-  const pricePerPerson = getRoutePricePerPerson(route.price);
-  const subtotal = calculateBookingTotal(route.price, guestCount);
+  const tripBasePerPerson = getRoutePricePerPerson(route.price);
+  const pricePerPerson = getRoutePricePerPersonWithVehicle(route.price, route);
+  const subtotal = calculateBookingTotal(route.price, guestCount, route);
   const hotelSplit = referralHotel ? calculateBookingSplit(subtotal, true, 1) : null;
   const checkoutTotal = hotelSplit?.gross ?? subtotal;
   const distanceLabel = formatDistance(route.routeStats?.distance);
@@ -419,6 +422,12 @@ export default function RouteDetails() {
                 <span className="text-3xl font-extrabold">{formatPrice(pricePerPerson)}</span>
                 <span className="text-secondary font-medium">/ คน</span>
               </div>
+              <VehicleServiceNote
+                route={route}
+                variant="detail"
+                basePerPerson={tripBasePerPerson}
+                className="mt-3 p-3 rounded-xl bg-surface/80 border border-primary/15"
+              />
             </div>
 
             <div className="mb-6">
@@ -458,7 +467,7 @@ export default function RouteDetails() {
                 </button>
               </div>
               <p className="text-xs text-secondary mt-2">
-                ราคารวม {guestCount} คน · {formatPerPersonPrice(route.price)}
+                ราคารวม {guestCount} คน · {formatPerPersonPrice(route.price, route)} × {guestCount}
               </p>
             </div>
 
@@ -505,7 +514,7 @@ export default function RouteDetails() {
               className="w-full h-14 bg-primary text-on-primary rounded-xl font-bold shadow-md hover:shadow-lg transition-shadow text-lg mb-3 flex items-center justify-center gap-2"
             >
               <ShoppingCart className="w-5 h-5" />
-              {added ? 'เพิ่มลงตะกร้าแล้ว' : `เพิ่มลงตะกร้า · ${formatBookingTotal(route.price, guestCount)}`}
+              {added ? 'เพิ่มลงตะกร้าแล้ว' : `เพิ่มลงตะกร้า · ${formatBookingTotal(route.price, guestCount, route)}`}
             </motion.button>
             <AnimatePresence>
               {added && (

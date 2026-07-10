@@ -5,11 +5,11 @@ import { HOTEL_LIBRARY_PATH } from '../config/navigation';
 import { getRouteById } from '../data/routeStore';
 import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
 import {
-  getLibraryEntry,
   getLibraryDisplayDescription,
   getLibraryDisplayTitle,
   resolveLibrarySourceRoute,
 } from '../data/libraryRoutes';
+import { getLibraryEntryById } from '../data/hotelLibraryStore';
 
 interface Point {
   id: string;
@@ -33,7 +33,7 @@ function waypointsToPoints(routeId: string, limit?: number): Point[] {
 export default function RouteEditor() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const entry = id ? getLibraryEntry(id) : undefined;
+  const entry = id ? getLibraryEntryById(id) : undefined;
   const source = entry ? resolveLibrarySourceRoute(entry) : undefined;
 
   const initial = useMemo(() => {

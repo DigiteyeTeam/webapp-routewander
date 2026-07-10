@@ -198,12 +198,20 @@
   border-radius: 9999px;
 }
 
-.login-page,
-.login-creator-card {
+.login-page {
   background-color: #3b9165;
   background-image:
     radial-gradient(circle, rgba(255, 255, 255, 0.22) 1px, transparent 1px),
     linear-gradient(to right, #5eb36d, #3b9165);
+  background-size: 22px 22px, 100% 100%;
+  background-position: 0 0, 0 0;
+}
+
+.login-creator-card {
+  background-color: #e8b41e;
+  background-image:
+    radial-gradient(circle, rgba(120, 72, 0, 0.14) 1px, transparent 1px),
+    linear-gradient(135deg, #f7d56a 0%, #e8b41e 55%, #d99a0f 100%);
   background-size: 22px 22px, 100% 100%;
   background-position: 0 0, 0 0;
 }

@@ -1,20 +1,21 @@
 import { useMemo, useState } from 'react';
-import { Search, MapPin, Clock, Star, Eye, ShoppingCart, CircleDollarSign } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Search, MapPin, Clock, Star, Eye, ShoppingCart, CircleDollarSign, Plus, Store } from 'lucide-react';
 import {
   CATEGORY_META,
 } from '../data/marketplaceRoutes';
 import {
-  LIBRARY_ENTRIES,
   resolveLibrarySourceRoute,
   getLibraryDisplayTitle,
   getLibraryDisplayDescription,
   type LibraryEntry,
 } from '../data/libraryRoutes';
-import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
+import { MotionPage, MotionHeader, MotionCard } from '../components/motion/PortalMotion';
 import { getHotelRouteMetrics } from '../data/hotelProfile';
+import { useHotelLibrary } from '../hooks/useHotelLibrary';
+import AddMarketplaceRouteModal from '../components/hotel/AddMarketplaceRouteModal';
+import { isRemovableLibraryEntry } from '../data/hotelLibraryStore';
 
-function LibraryCard({ entry }: { entry: LibraryEntry }) {
+function LibraryCard({ entry, onRemove }: { entry: LibraryEntry; onRemove?: () => void }) {
   const source = resolveLibrarySourceRoute(entry);
   if (!source) return null;
 
@@ -96,6 +97,15 @@ function LibraryCard({ entry }: { entry: LibraryEntry }) {
             <p className="text-[10px] text-emerald-700/80">คอมมิชชันสะสม</p>
           </div>
         </div>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="mt-3 text-xs font-bold text-secondary hover:text-red-600 transition-colors"
+          >
+            นำออกจากคลัง
+          </button>
+        )}
       </div>
     </div>
   );
@@ -103,12 +113,14 @@ function LibraryCard({ entry }: { entry: LibraryEntry }) {
 
 export default function Library() {
   const [query, setQuery] = useState('');
+  const [modalOpen, setModalOpen] = useState(false);
+  const { entries, addRoute, removeRoute, isInLibrary } = useHotelLibrary();
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return LIBRARY_ENTRIES;
+    if (!q) return entries;
 
-    return LIBRARY_ENTRIES.filter((entry) => {
+    return entries.filter((entry) => {
       const source = resolveLibrarySourceRoute(entry);
       if (!source) return false;
       const title = getLibraryDisplayTitle(entry, source).toLowerCase();
@@ -121,7 +133,11 @@ export default function Library() {
         (entry.forkedFromTitle?.toLowerCase().includes(q) ?? false)
       );
     });
-  }, [query]);
+  }, [query, entries]);
+
+  const handleAdd = (routeId: string) => {
+    addRoute(routeId);
+  };
 
   return (
     <MotionPage className="space-y-12">
@@ -134,7 +150,15 @@ export default function Library() {
             เส้นทางที่โรงแรมติดตามและขายอยู่ พร้อมสถิติการดู การซื้อ และคอมมิชชันต่อเส้นทาง
           </p>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="inline-flex items-center justify-center gap-2 bg-orange-500 hover:bg-orange-600 text-white font-bold px-5 py-2.5 rounded-full transition-colors shrink-0"
+          >
+            <Plus className="w-5 h-5" />
+            เพิ่มจากตลาดเส้นทาง
+          </button>
           <div className="bg-surface-container-low border border-surface-variant rounded-full px-4 py-2 flex items-center gap-2 w-full md:w-64 focus-within:border-primary transition-all">
             <Search className="text-on-surface-variant w-5 h-5 shrink-0" />
             <input
@@ -150,24 +174,43 @@ export default function Library() {
 
       {filtered.length === 0 ? (
         <div className="text-center py-20 bg-surface-container-lowest rounded-2xl border border-surface-variant">
-          <p className="text-on-surface-variant mb-4">ไม่พบเส้นทางที่ตรงกับคำค้นหา</p>
-          <Link to="/" className="text-primary font-bold hover:underline">
-            ไปที่ตลาดเส้นทาง
-          </Link>
+          <Store className="w-12 h-12 text-secondary mx-auto mb-4 opacity-50" />
+          <p className="text-on-surface-variant mb-4">
+            {query ? 'ไม่พบเส้นทางที่ตรงกับคำค้นหา' : 'ยังไม่มีเส้นทางในคลัง'}
+          </p>
+          <button
+            type="button"
+            onClick={() => setModalOpen(true)}
+            className="text-primary font-bold hover:underline"
+          >
+            เพิ่มเส้นทางจากตลาด RouteWander
+          </button>
         </div>
       ) : (
-        <MotionList className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filtered.map((entry) => (
-            <MotionListItem key={entry.id}>
-              <MotionCard className="h-full">
-                <LibraryCard entry={entry} />
-              </MotionCard>
-            </MotionListItem>
+            <MotionCard key={entry.id} className="h-full">
+              <LibraryCard
+                entry={entry}
+                onRemove={
+                  isRemovableLibraryEntry(entry)
+                    ? () => removeRoute(entry.id)
+                    : undefined
+                }
+              />
+            </MotionCard>
           ))}
-        </MotionList>
+        </div>
       )}
 
-      <p className="text-center text-sm text-secondary">มีเส้นทางในคลัง {LIBRARY_ENTRIES.length} รายการ</p>
+      <p className="text-center text-sm text-secondary">มีเส้นทางในคลัง {entries.length} รายการ</p>
+
+      <AddMarketplaceRouteModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        isInLibrary={isInLibrary}
+        onAdd={handleAdd}
+      />
     </MotionPage>
   );
 }

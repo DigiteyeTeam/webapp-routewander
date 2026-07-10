@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import { calculateBookingTotal, clampGuestCount, getRoutePricePerPerson } from '../data/routePricing';
+import { calculateBookingTotal, clampGuestCount, getRoutePricePerPersonWithVehicle } from '../data/routePricing';
 import { calculateBookingSplit } from '../data/hotelProfile';
 import { getRouteById } from '../data/routeStore';
 import type { CartItem } from '../types/cart';
@@ -54,8 +54,8 @@ function buildCartItem(
   if (!route) return null;
 
   const guests = clampGuestCount(guestCount);
-  const unitPrice = getRoutePricePerPerson(route.price);
-  const subtotal = calculateBookingTotal(route.price, guests);
+  const unitPrice = getRoutePricePerPersonWithVehicle(route.price, route);
+  const subtotal = calculateBookingTotal(route.price, guests, route);
   const split = hotel ? calculateBookingSplit(subtotal, true, 1) : null;
 
   return {
@@ -79,8 +79,8 @@ function recalcItem(item: CartItem, guestCount: number): CartItem {
   if (!route) return item;
 
   const guests = clampGuestCount(guestCount);
-  const unitPrice = getRoutePricePerPerson(route.price);
-  const subtotal = calculateBookingTotal(route.price, guests);
+  const unitPrice = getRoutePricePerPersonWithVehicle(route.price, route);
+  const subtotal = calculateBookingTotal(route.price, guests, route);
   const split = item.hotelSlug
     ? calculateBookingSplit(subtotal, true, 1)
     : null;

@@ -50,6 +50,7 @@ export interface RouteDetail {
   district: string;
   duration: string;
   stops: number;
+  vehicleServicePerHour?: number;
   waypoints: RouteWaypoint[];
   routeStats?: RouteStats | null;
   source: 'marketplace' | 'creator';

@@ -7,7 +7,7 @@ import ProfileAvatar from '../components/ProfileAvatar';
 import { PortalMobileBackdrop, PortalPageOutlet } from '../components/motion/PortalMotion';
 import PortalAIChatWidget from '../components/chat/PortalAIChatWidget';
 import { useAuth } from '../context/AuthContext';
-import { PROFILE_AVATAR } from '../data/profileAvatar';
+import { TRAVELER_AVATAR } from '../data/profileAvatar';
 import { slideFromLeft } from '../lib/motion';
 
 export default function TravelerLayout() {
@@ -107,7 +107,7 @@ export default function TravelerLayout() {
           </button>
           <span className="font-bold text-emerald-800 text-sm">{user?.name ?? 'นักท่องเที่ยว'}</span>
           <Link to="/traveler/profile">
-            <ProfileAvatar src={PROFILE_AVATAR} alt="" tone="traveler" size="xs" />
+            <ProfileAvatar src={TRAVELER_AVATAR} alt="" tone="traveler" size="xs" />
           </Link>
         </motion.header>
 

@@ -29,6 +29,8 @@ export interface MarketplaceRoute {
   district: string;
   duration: string;
   stops: number;
+  /** ค่ารถบริการต่อชั่วโมง (mockup — ทุกเส้นทางมีค่ารถ) */
+  vehicleServicePerHour?: number;
   waypoints: MarketplaceWaypoint[];
   featured?: boolean;
   isNew?: boolean;
@@ -155,6 +157,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ตลาดใหญ่, เมือง',
     duration: '5 ชม.',
     stops: 7,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('hotel-kamala-resort', 'จุดรับ — โรงแรมริมหาดกมลา'),
       communityWp(4, 'activity', 'เดินชมตึกชิโน-โปรตุกีสและถนนถลาง'),
@@ -182,6 +185,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'เทพกระษัตรี, ถลาง',
     duration: '5 ชม.',
     stops: 6,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('hotel-andamanda', 'จุดรับ — สวนน้ำเชิงทะเล'),
       communityWp(2, 'activity', 'ชมการรำโนราสดและเรื่องราวเก้าทัพ'),
@@ -207,6 +211,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ไม้ขาว, ถลาง',
     duration: '5 ชม.',
     stops: 6,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('hotel-marriott-mai-khao', 'จุดรับ — รีสอร์ทหาดไม้ขาว'),
       communityWp(1, 'activity', 'สัมผัสวิถีชาวประมงและระบบนิเวศสามป่า'),
@@ -257,6 +262,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'วิชิต, เมือง',
     duration: '5 ชม.',
     stops: 6,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('landmark-wat-chalong', 'จุดรับ — วัดฉลอง (ฝั่งเมือง)'),
       communityWp(7, 'activity', 'สัมผัสวิถีชาวประมงและเรือหางยาว'),
@@ -306,6 +312,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'เกาะมะพร้าว, เมือง',
     duration: '5 ชม.',
     stops: 5,
+    vehicleServicePerHour: 100,
     waypoints: [
       nearCommunity(11, 'ท่าเรือข้ามเกาะมะพร้าว', 'meeting', 'จุดนัดพบท่าเรือฝั่งดินก่อนข้ามเกาะ', { lat: 0.069, lng: 0.008 }),
       communityWp(11, 'activity', 'เดินชมหมู่บ้านชาวประมงบนเกาะ'),
@@ -330,6 +337,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ป่าคลอก, ถลาง',
     duration: '4 ชม.',
     stops: 5,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('landmark-wat-chalong'),
       communityWp(12, 'activity', 'เดินตลาดชุมชนและเรียนรู้วิถีชาวประมง'),
@@ -423,6 +431,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'เชิงทะเล, ถลาง',
     duration: '4.5 ชม.',
     stops: 5,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('hotel-andamanda'),
       communityWp(9, 'activity', 'เรียนรู้วัฒนธรรมอยู่ร่วมสองศาสนาในชุมชน'),
@@ -494,6 +503,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'วิชิต, เมือง',
     duration: '4.5 ชม.',
     stops: 5,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('landmark-bigbuddha', 'จุดรับ — พระใหญ่ภูเก็ต'),
       communityWp(7, 'activity', 'นั่งเรือหางยาวและเรียนรู้แผนโบราณ'),
@@ -542,6 +552,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ตลาดใหญ่, เมือง',
     duration: '5.5 ชม.',
     stops: 6,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('landmark-wat-chalong'),
       communityWp(4, 'activity', 'เดินสำรวจย่านมรดกโลกกับไกด์ท้องถิ่น'),
@@ -590,6 +601,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ป่าคลอก, ถลาง',
     duration: '5 ชม.',
     stops: 6,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('landmark-wat-chalong'),
       communityWp(12, 'activity', 'ตื่นเช้าที่ตลาดชุมชนบ้านบางโรง'),
@@ -616,6 +628,7 @@ export const MARKETPLACE_ROUTES: MarketplaceRoute[] = [
     district: 'ไม้ขาว, ถลาง',
     duration: '6 ชม.',
     stops: 7,
+    vehicleServicePerHour: 100,
     waypoints: [
       hotelMeeting('hotel-marriott-mai-khao'),
       communityWp(1, 'activity', 'วาดผ้าบาติกและจับจิ้งหรีดทรายกับชาวบ้าน'),

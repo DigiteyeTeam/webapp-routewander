@@ -1,5 +1,5 @@
 import { formatPrice, MARKETPLACE_ROUTES, type MarketplaceRoute } from './marketplaceRoutes';
-import { PROFILE_AVATAR } from './profileAvatar';
+import { HOTEL_AVATAR } from './profileAvatar';
 
 /** ค่าบริการแพลตฟอร์มต่อการจอง (บาท) */
 export const HOTEL_PLATFORM_FEE = 200;
@@ -81,7 +81,7 @@ export const MOCK_HOTEL_PROFILE: HotelProfile = {
   tagline: 'โรงแรมพันธมิตร RouteWander · แนะนำเส้นทางชุมชนให้แขก',
   district: 'ป่าตอง · ภูเก็ต',
   memberSince: 'มี.ค. 2025',
-  avatar: PROFILE_AVATAR,
+  avatar: HOTEL_AVATAR,
   verified: true,
   qrPlacements: 42,
 };

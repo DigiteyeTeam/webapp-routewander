@@ -3,7 +3,9 @@ import { ArrowLeft, Building2, Minus, Plus, ShoppingCart, Trash2 } from 'lucide-
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { formatPrice } from '../data/marketplaceRoutes';
+import { getRouteById } from '../data/routeStore';
 import { MAX_GUESTS, MIN_GUESTS } from '../data/routePricing';
+import VehicleServiceNote from '../components/route/VehicleServiceNote';
 
 export default function Cart() {
   const navigate = useNavigate();
@@ -50,7 +52,9 @@ export default function Cart() {
       </div>
 
       <div className="space-y-4">
-        {items.map((item) => (
+        {items.map((item) => {
+          const route = getRouteById(item.routeId);
+          return (
           <article
             key={item.id}
             className="flex flex-col sm:flex-row gap-4 p-5 rounded-2xl border border-surface-variant bg-surface-container-lowest shadow-sm"
@@ -67,6 +71,7 @@ export default function Cart() {
                     {item.routeTitle}
                   </Link>
                   <p className="text-sm text-secondary mt-0.5">โดย {item.creatorName}</p>
+                  {route && <VehicleServiceNote route={route} variant="detail" className="mt-2" />}
                   {item.hotelName && (
                     <p className="inline-flex items-center gap-1 text-xs font-medium text-orange-700 mt-2">
                       <Building2 className="w-3.5 h-3.5" />
@@ -117,7 +122,8 @@ export default function Cart() {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
 
       <aside className="rounded-2xl border border-surface-variant bg-surface-container-low p-6 space-y-4">
