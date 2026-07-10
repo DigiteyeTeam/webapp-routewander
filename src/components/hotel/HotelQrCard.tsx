@@ -26,15 +26,6 @@ export default function HotelQrCard({ branch, onCopy }: HotelQrCardProps) {
     }
   };
 
-  const handleCopyLabel = async () => {
-    try {
-      await navigator.clipboard.writeText(displayLabel);
-      onCopy?.();
-    } catch {
-      /* ignore */
-    }
-  };
-
   const handlePrint = () => {
     const node = printRef.current;
     if (!node) return;
@@ -122,14 +113,6 @@ export default function HotelQrCard({ branch, onCopy }: HotelQrCardProps) {
             >
               <Copy className="w-4 h-4" />
               คัดลอกลิงก์
-            </button>
-            <button
-              type="button"
-              onClick={handleCopyLabel}
-              className="inline-flex items-center gap-2 px-4 h-10 rounded-xl border border-orange-200 text-orange-800 text-sm font-bold hover:bg-orange-50 transition-colors"
-            >
-              <Copy className="w-4 h-4" />
-              คัดลอกชื่อ+slug
             </button>
             <button
               type="button"
