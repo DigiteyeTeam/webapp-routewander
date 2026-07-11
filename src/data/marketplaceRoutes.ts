@@ -1,7 +1,7 @@
 import type { WaypointType } from '../types/route';
 import { getCommunityImage } from './communityImages';
+import { GUIDE_FEMALE_AVATARS, GUIDE_MALE_AVATARS } from './guideAvatars';
 import { getCommunityByNo, getPoiById } from './phuketPois';
-import { PROFILE_AVATAR } from './profileAvatar';
 
 export type MarketplaceCategory = 'heritage' | 'food' | 'community' | 'nature' | 'family';
 
@@ -36,34 +36,33 @@ export interface MarketplaceRoute {
   isNew?: boolean;
 }
 
-const CREATOR_AVATAR = PROFILE_AVATAR;
-
+/** g1–g10 = หญิง, m1–m10 = ชาย */
 const CREATORS = [
-  { name: 'สมชาย ใจดี', verified: true },
-  { name: 'วิไล ถลาง', verified: true },
-  { name: 'ประเสริฐ ทะเล', verified: true },
-  { name: 'นภา กมลา', verified: true },
-  { name: 'ฟาติมะ พันวา', verified: true },
-  { name: 'อามีน บ่อแร่', verified: false },
-  { name: 'สุรชัย ลิพอน', verified: true },
-  { name: 'ดวงใจ ม่านิก', verified: true },
-  { name: 'กานต์ รัษฎา', verified: true },
-  { name: 'มณี บางโรง', verified: true },
-  { name: 'ชัยพฤกษ์ มะพร้าว', verified: true },
-  { name: 'ลัดดา ป่าตอง', verified: false },
-  { name: 'วีระ สาคู', verified: true },
-  { name: 'ปิยะ ขนุน', verified: true },
-  { name: 'เบญจมาศ เคียน', verified: true },
-  { name: 'ธนา บางเทา', verified: true },
-  { name: 'สุภาพร ท่าฉัตร', verified: true },
-  { name: 'อรุณี บางวาน', verified: true },
-  { name: 'ชาญชัย เมืองเก่า', verified: true },
-  { name: 'พิมพ์ใจ พันวา', verified: true },
+  { name: 'สมชาย ใจดี', verified: true, avatar: GUIDE_MALE_AVATARS[0] },
+  { name: 'วิไล ถลาง', verified: true, avatar: GUIDE_FEMALE_AVATARS[0] },
+  { name: 'ประเสริฐ ทะเล', verified: true, avatar: GUIDE_MALE_AVATARS[1] },
+  { name: 'นภา กมลา', verified: true, avatar: GUIDE_FEMALE_AVATARS[1] },
+  { name: 'ฟาติมะ พันวา', verified: true, avatar: GUIDE_FEMALE_AVATARS[2] },
+  { name: 'อามีน บ่อแร่', verified: false, avatar: GUIDE_MALE_AVATARS[2] },
+  { name: 'สุรชัย ลิพอน', verified: true, avatar: GUIDE_MALE_AVATARS[3] },
+  { name: 'ดวงใจ ม่านิก', verified: true, avatar: GUIDE_FEMALE_AVATARS[3] },
+  { name: 'กานต์ รัษฎา', verified: true, avatar: GUIDE_MALE_AVATARS[4] },
+  { name: 'มณี บางโรง', verified: true, avatar: GUIDE_FEMALE_AVATARS[4] },
+  { name: 'ชัยพฤกษ์ มะพร้าว', verified: true, avatar: GUIDE_MALE_AVATARS[5] },
+  { name: 'ลัดดา ป่าตอง', verified: false, avatar: GUIDE_FEMALE_AVATARS[5] },
+  { name: 'วีระ สาคู', verified: true, avatar: GUIDE_MALE_AVATARS[6] },
+  { name: 'ปิยะ ขนุน', verified: true, avatar: GUIDE_MALE_AVATARS[7] },
+  { name: 'เบญจมาศ เคียน', verified: true, avatar: GUIDE_FEMALE_AVATARS[6] },
+  { name: 'ธนา บางเทา', verified: true, avatar: GUIDE_MALE_AVATARS[8] },
+  { name: 'สุภาพร ท่าฉัตร', verified: true, avatar: GUIDE_FEMALE_AVATARS[7] },
+  { name: 'อรุณี บางวาน', verified: true, avatar: GUIDE_FEMALE_AVATARS[8] },
+  { name: 'ชาญชัย เมืองเก่า', verified: true, avatar: GUIDE_MALE_AVATARS[9] },
+  { name: 'พิมพ์ใจ พันวา', verified: true, avatar: GUIDE_FEMALE_AVATARS[9] },
 ] as const;
 
 function creator(index: number) {
   const c = CREATORS[index % CREATORS.length];
-  return { name: c.name, avatar: CREATOR_AVATAR, verified: c.verified };
+  return { name: c.name, avatar: c.avatar, verified: c.verified };
 }
 
 function communityWp(

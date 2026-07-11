@@ -1,4 +1,3 @@
-import rwpPin from '../../images/rwp.png';
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
@@ -31,19 +30,20 @@ const MAP_PIN_COLOR = CATEGORY_META.nature.color;
 
 L.Icon.Default.imagePath = 'https://unpkg.com/leaflet@1.9.4/dist/images/';
 
-function createRouteMarkerIcon(selected: boolean) {
+function createRouteMarkerIcon(avatarUrl: string, selected: boolean, pinColor = MAP_PIN_COLOR) {
   const size = selected ? 48 : 40;
   const border = selected ? 5 : 4;
   const outer = size + border * 2;
   const tail = 10;
   const totalH = outer + tail;
+  const safeSrc = avatarUrl.replace(/"/g, '&quot;');
 
   return L.divIcon({
     className: `marketplace-pin${selected ? ' marketplace-pin--selected' : ''}`,
     html: `
-      <div class="marketplace-pin-wrap${selected ? ' marketplace-pin-wrap--selected' : ''}" style="--pin-color:${MAP_PIN_COLOR}">
+      <div class="marketplace-pin-wrap${selected ? ' marketplace-pin-wrap--selected' : ''}" style="--pin-color:${pinColor}">
         <div class="marketplace-pin-circle" style="width:${size}px;height:${size}px;border-width:${border}px">
-          <img src="${rwpPin}" alt="" draggable="false" />
+          <img src="${safeSrc}" alt="" draggable="false" />
         </div>
         <div class="marketplace-pin-tail"></div>
       </div>
@@ -193,12 +193,13 @@ export default function MarketplaceMapView({
           {routes.map((route) => {
             const isSelected = route.id === selectedId;
             const center = getRouteCenter(route);
+            const pinColor = CATEGORY_META[route.category]?.color ?? MAP_PIN_COLOR;
 
             return (
               <Marker
                 key={route.id}
                 position={[center.lat, center.lng]}
-                icon={createRouteMarkerIcon(isSelected)}
+                icon={createRouteMarkerIcon(route.creator.avatar, isSelected, pinColor)}
                 zIndexOffset={isSelected ? 500 : 100}
                 eventHandlers={{
                   click: () => selectRoute(isSelected ? null : route.id),

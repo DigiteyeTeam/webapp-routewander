@@ -3,7 +3,7 @@ import {
   formatPrice,
   type MarketplaceRoute,
 } from './marketplaceRoutes';
-import { PROFILE_AVATAR } from './profileAvatar';
+import { PRIMARY_CREATOR_AVATAR } from './guideAvatars';
 
 export interface CreatorProfile {
   id: string;
@@ -59,7 +59,7 @@ export const MOCK_CREATOR_PROFILE: CreatorProfile = {
   name: 'สมชาย ใจดี',
   tagline: 'ไกด์ท้องถิ่นภูเก็ต เน้นมรดกเปรานกัน',
   email: 'somchai@routewander.com',
-  avatar: PROFILE_AVATAR,
+  avatar: PRIMARY_CREATOR_AVATAR,
   verified: true,
   district: 'เมืองภูเก็ต',
   memberSince: 'ม.ค. 2025',

@@ -7,7 +7,7 @@ import ProfileAvatar from '../components/ProfileAvatar';
 import { PortalMobileBackdrop, PortalPageOutlet } from '../components/motion/PortalMotion';
 import PortalAIChatWidget from '../components/chat/PortalAIChatWidget';
 import { useAuth } from '../context/AuthContext';
-import { PROFILE_AVATAR } from '../data/profileAvatar';
+import { PRIMARY_CREATOR_AVATAR } from '../data/guideAvatars';
 import { slideFromLeft } from '../lib/motion';
 
 export default function CreatorLayout() {
@@ -95,7 +95,7 @@ export default function CreatorLayout() {
             <h2 className="font-headline-md text-primary font-bold text-xl">ศูนย์ครีเอเตอร์</h2>
           </div>
           <Link to="/creator/profile" className="hover:opacity-90 transition-opacity">
-            <ProfileAvatar src={PROFILE_AVATAR} alt="รูปโปรไฟล์" tone="creator" size="xs" />
+            <ProfileAvatar src={PRIMARY_CREATOR_AVATAR} alt="รูปโปรไฟล์" tone="creator" size="xs" />
           </Link>
         </header>
 

@@ -1,11 +1,11 @@
-import rwai1 from '../images/rwai1.png';
 import rwmin from '../images/rwmin.png';
 import rwhotel from '../images/rwhotel.png';
 import type { UserRole } from '../types/auth';
+import { PRIMARY_CREATOR_AVATAR } from './guideAvatars';
 
-/** รูปโปรไฟล์ครีเอเตอร์ */
-export const PROFILE_AVATAR = rwai1;
-export const CREATOR_AVATAR = rwai1;
+/** รูปโปรไฟล์ครีเอเตอร์ (สมชาย = m1) */
+export const PROFILE_AVATAR = PRIMARY_CREATOR_AVATAR;
+export const CREATOR_AVATAR = PRIMARY_CREATOR_AVATAR;
 
 /** รูปโปรไฟล์นักท่องเที่ยว */
 export const TRAVELER_AVATAR = rwmin;

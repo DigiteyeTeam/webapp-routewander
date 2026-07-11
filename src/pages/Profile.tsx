@@ -1,7 +1,7 @@
 import { Camera, Verified, Lock, Mail, Key, Save } from 'lucide-react';
 import ProfileAvatar from '../components/ProfileAvatar';
 import { MotionPage, MotionHeader, MotionSection, MotionList, MotionListItem, MotionCard } from '../components/motion/PortalMotion';
-import { PROFILE_AVATAR } from '../data/profileAvatar';
+import { PRIMARY_CREATOR_AVATAR } from '../data/guideAvatars';
 
 export default function Profile() {
   return (
@@ -14,7 +14,7 @@ export default function Profile() {
       <div className="space-y-8">
         <MotionSection className="bg-surface-container-lowest p-6 md:p-10 rounded-3xl shadow-[0px_4px_20px_rgba(0,0,0,0.03)] flex flex-col lg:flex-row gap-10 items-start border border-outline-variant/30">
           <div className="relative shrink-0 mx-auto lg:mx-0">
-            <ProfileAvatar src={PROFILE_AVATAR} alt="รูปโปรไฟล์" tone="creator" size="lg" />
+            <ProfileAvatar src={PRIMARY_CREATOR_AVATAR} alt="รูปโปรไฟล์" tone="creator" size="lg" />
             <button className="absolute bottom-2 right-2 w-12 h-12 bg-emerald-500 text-white rounded-full flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all focus:outline-none focus:ring-4 focus:ring-emerald-200">
               <Camera className="w-5 h-5" />
             </button>
